@@ -15,6 +15,14 @@ defmodule PtyLab.Experiment do
     run_pairs(options, :echo)
   end
 
+  @doc "Runs the bounded macOS canonical/byte delivery witness with echo off."
+  def run_canonical_pairs(options) do
+    unless :os.type() == {:unix, :darwin},
+      do: raise(ArgumentError, "macOS terminal fixture required")
+
+    run_pairs(options, :canonical)
+  end
+
   defp run_pairs(options, witness) do
     root = Path.expand(Map.fetch!(options, :root))
     directory = Path.expand(Map.fetch!(options, :directory))
@@ -36,12 +44,27 @@ defmodule PtyLab.Experiment do
       witness: Atom.to_string(witness),
       pairs: pairs,
       max_concurrency: concurrency,
-      order: if(witness == :echo, do: ["echo_on", "echo_off"], else: ["pipe", "slave"]),
+      order:
+        case witness do
+          :echo -> ["echo_on", "echo_off"]
+          :canonical -> ["canonical_on", "canonical_off"]
+          _ -> ["pipe", "slave"]
+        end,
       continuation: "continue_remaining_pairs",
       session_deadline_ms: 5000,
-      input_delay_ms: if(witness != :ls, do: 100, else: 0),
-      input_anchor: if(witness != :ls, do: "received spawned", else: "no input"),
-      expected_input: if(witness != :ls, do: "hello\n", else: ""),
+      input_delay_ms: if(witness in [:hello, :echo], do: 100, else: 0),
+      input_anchor:
+        case witness do
+          :ls -> "no input"
+          :canonical -> "READY: send h; WINDOW line: send newline; probe window 400 ms"
+          _ -> "received spawned"
+        end,
+      expected_input:
+        case witness do
+          :ls -> ""
+          :canonical -> "h\n"
+          _ -> "hello\n"
+        end,
       retries: 0,
       input_overrides: Map.get(options, :input_overrides, %{}),
       executable_overrides: Map.get(options, :executable_overrides, %{}),
@@ -49,10 +72,11 @@ defmodule PtyLab.Experiment do
       terminal_config_sha256: hash(config_bytes),
       spec: %{
         "executable" =>
-          if(witness != :ls,
-            do: Path.join(root, "target/debug/hello_witness"),
-            else: "/bin/ls"
-          ),
+          case witness do
+            :ls -> "/bin/ls"
+            :canonical -> Path.join(root, "target/debug/byte_witness")
+            _ -> Path.join(root, "target/debug/hello_witness")
+          end,
         "argv" => [],
         "cwd" =>
           if(witness != :ls, do: root, else: Path.join(root, "experiments/ls_001/fixture")),
@@ -181,36 +205,41 @@ defmodule PtyLab.Experiment do
       case :pty_session.start_session(options) do
         {:ok, handle} ->
           input_result =
-            if input == "" do
-              :no_input
-            else
-              case :pty_session.await_event(handle, "spawned", 1000) do
-                {:ok, _} ->
-                  anchor = System.monotonic_time(:nanosecond)
+            cond do
+              definition.witness == "canonical" ->
+                canonical_input(handle, input)
 
-                  :ok =
-                    :receipt_writer.event(handle.worker, "input_timing_policy", %{
-                      delay_ms: definition.input_delay_ms,
-                      anchor: "experiment receives spawned",
-                      spawn_received_monotonic_ns: anchor
-                    })
+              input == "" ->
+                :no_input
 
-                  receive do
-                  after
-                    definition.input_delay_ms -> :ok
-                  end
+              true ->
+                case :pty_session.await_event(handle, "spawned", 1000) do
+                  {:ok, _} ->
+                    anchor = System.monotonic_time(:nanosecond)
 
-                  :ok =
-                    :receipt_writer.event(handle.worker, "input_timing_observation", %{
-                      delay_ns: System.monotonic_time(:nanosecond) - anchor,
-                      meaning: "write-request preparation; not OS delivery"
-                    })
+                    :ok =
+                      :receipt_writer.event(handle.worker, "input_timing_policy", %{
+                        delay_ms: definition.input_delay_ms,
+                        anchor: "experiment receives spawned",
+                        spawn_received_monotonic_ns: anchor
+                      })
 
-                  :pty_session.send_input(handle, input)
+                    receive do
+                    after
+                      definition.input_delay_ms -> :ok
+                    end
 
-                {:error, reason} ->
-                  {:error, reason}
-              end
+                    :ok =
+                      :receipt_writer.event(handle.worker, "input_timing_observation", %{
+                        delay_ns: System.monotonic_time(:nanosecond) - anchor,
+                        meaning: "write-request preparation; not OS delivery"
+                      })
+
+                    :pty_session.send_input(handle, input)
+
+                  {:error, reason} ->
+                    {:error, reason}
+                end
             end
 
           case :pty_session.await_result(handle, 6500) do
@@ -317,14 +346,15 @@ defmodule PtyLab.Experiment do
       }
 
       checks =
-        if witness == "echo" do
+        if witness in ["echo", "canonical"] do
           Map.put(
             checks,
             :observed_terminal_configuration,
             Enum.all?(cells, fn c ->
               case c.observation[:terminal_observations] do
                 [%{"phase" => "slave_before_spawn", "echo_mask" => 8, "configuration" => config}] ->
-                  config == c.observation.header["spec"]["terminal"]
+                  config == c.observation.header["spec"]["terminal"] and
+                    native_axis_matches?(hd(c.observation.terminal_observations), witness)
 
                 _ ->
                   false
@@ -335,10 +365,88 @@ defmodule PtyLab.Experiment do
           checks
         end
 
+      checks =
+        if witness == "canonical" do
+          checks
+          |> Map.put(:control_output, checks.pipe_output)
+          |> Map.put(:treatment_output, checks.pty_output)
+          |> Map.drop([:pipe_output, :pty_output])
+        else
+          checks
+        end
+
       {if(Enum.all?(checks, fn {_, value} -> value end), do: "pass", else: "mismatch"), checks}
     else
       {"execution_failure", %{sessions_completed_with_verified_zero_exits: false}}
     end
+  end
+
+  defp canonical_input(handle, "h\n") do
+    with {:ok, "READY\r\n"} <- await_line(handle, "", System.monotonic_time(:millisecond) + 1000),
+         :ok <-
+           :receipt_writer.event(handle.worker, "canonical_input_policy", %{
+             first: "68",
+             second: "0a",
+             window_ms: 400,
+             anchor: "READY then WINDOW line"
+           }),
+         :ok <- :pty_session.send_input(handle, "h"),
+         {:ok, %{"data" => %{"hex" => "68"}}} <-
+           :pty_session.await_event(handle, "input_written", 1000),
+         {:ok, window} <- await_line(handle, "", System.monotonic_time(:millisecond) + 1000),
+         true <- window in ["WINDOW NONE\r\n", "WINDOW 68\r\n"],
+         :ok <-
+           :receipt_writer.event(handle.worker, "canonical_window_observed", %{
+             hex: Base.encode16(window)
+           }),
+         :ok <- :pty_session.send_input(handle, "\n"),
+         {:ok, %{"data" => %{"hex" => "0a"}}} <-
+           :pty_session.await_event(handle, "input_written", 1000) do
+      :ok
+    else
+      error -> {:error, {:canonical_input, error}}
+    end
+  end
+
+  defp canonical_input(_, _), do: {:error, :canonical_input_must_be_h_newline}
+
+  defp await_line(handle, bytes, deadline) do
+    cond do
+      byte_size(bytes) > 1024 ->
+        {:error, :output_limit}
+
+      String.ends_with?(bytes, "\n") ->
+        {:ok, bytes}
+
+      System.monotonic_time(:millisecond) >= deadline ->
+        {:error, :phase_timeout}
+
+      true ->
+        timeout = max(0, deadline - System.monotonic_time(:millisecond))
+
+        case :pty_session.await_event(handle, "pty_output", timeout) do
+          {:ok, %{"data" => %{"hex" => hex}}} ->
+            await_line(handle, bytes <> Base.decode16!(hex, case: :mixed), deadline)
+
+          error ->
+            error
+        end
+    end
+  end
+
+  defp native_axis_matches?(observation, "canonical"),
+    do:
+      observation["canonical_mask"] == 256 and observation["vmin_index"] == 16 and
+        observation["vtime_index"] == 17
+
+  defp native_axis_matches?(_, _), do: true
+
+  defp cell_spec(spec, "canonical_on"), do: cell_spec(spec, "echo_off")
+
+  defp cell_spec(spec, "canonical_off") do
+    cell_spec(spec, "canonical_on")
+    |> put_in(["terminal", "termios", "canonical"], false)
+    |> update_in(["terminal", "termios", "lflag"], &Bitwise.band(&1, Bitwise.bnot(256)))
   end
 
   defp cell_spec(spec, "echo_on"), do: Map.put(spec, "attachment", "slave")
@@ -352,6 +460,15 @@ defmodule PtyLab.Experiment do
 
   defp cell_spec(spec, mode), do: Map.put(spec, "attachment", mode)
 
+  defp matched_specs?(on, off, "canonical") do
+    t = on["terminal"]["termios"]
+
+    on["attachment"] == "slave" and t["echo"] == false and t["canonical"] == true and
+      Bitwise.band(t["lflag"], 8) == 0 and Bitwise.band(t["lflag"], 256) == 256 and
+      Enum.at(t["cc"], 16) == 1 and Enum.at(t["cc"], 17) == 0 and
+      off == cell_spec(on, "canonical_off")
+  end
+
   defp matched_specs?(on, off, "echo") do
     on["attachment"] == "slave" and on["terminal"]["termios"]["echo"] == true and
       Bitwise.band(on["terminal"]["termios"]["lflag"], 8) == 8 and
@@ -361,6 +478,11 @@ defmodule PtyLab.Experiment do
 
   defp matched_specs?(a, b, _), do: Map.delete(a, "attachment") == Map.delete(b, "attachment")
 
+  defp control_matches?(cell, _, "h\n", "canonical"),
+    do:
+      Base.decode16!(cell.observation.streams_hex["pty_output"]) ==
+        "READY\r\nWINDOW NONE\r\nFINAL 680a\r\n"
+
   defp control_matches?(cell, _, input, "echo"),
     do: pty_matches?(Base.decode16!(cell.observation.streams_hex["pty_output"]), input, "hello")
 
@@ -368,6 +490,9 @@ defmodule PtyLab.Experiment do
 
   defp pipe_matches?(bytes, _, "ls"), do: bytes == "alpha\nbravo\ncharlie\n"
   defp pipe_matches?(bytes, input, "hello"), do: bytes == "received: " <> input
+
+  defp pty_matches?(bytes, "h\n", "canonical"),
+    do: bytes == "READY\r\nWINDOW 68\r\nFINAL 680a\r\n"
 
   defp pty_matches?(bytes, input, "echo"),
     do: bytes == "input> received: " <> String.replace(input, "\n", "\r\n")

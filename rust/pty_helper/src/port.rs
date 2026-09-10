@@ -160,6 +160,7 @@ fn terminal_observation(fd: i32) -> Result<Value> {
         return Err(io::Error::last_os_error().into());
     }
     Ok(json!({"phase":"slave_before_spawn", "echo_mask":libc::ECHO,
+        "canonical_mask":libc::ICANON,"vmin_index":libc::VMIN,"vtime_index":libc::VTIME,
         "configuration": {
             "termios": {"iflag":t.c_iflag,"oflag":t.c_oflag,"cflag":t.c_cflag,
                 "lflag":t.c_lflag,"cc":t.c_cc.to_vec(),

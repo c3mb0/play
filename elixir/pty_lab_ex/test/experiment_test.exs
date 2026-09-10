@@ -47,6 +47,81 @@ defmodule PtyLab.ExperimentTest do
              PtyLab.Experiment.compare([on, unchanged], "hello\n", "echo")
   end
 
+  test "canonical requires early byte delivery, fixed VMIN and native readback" do
+    cells = canonical_cells()
+    assert {"pass", _} = PtyLab.Experiment.compare(cells, "h\n", "canonical")
+    [on, off] = cells
+
+    late =
+      put_in(
+        off,
+        [:observation, :streams_hex, "pty_output"],
+        on.observation.streams_hex["pty_output"]
+      )
+
+    assert {"mismatch", %{treatment_output: false}} =
+             PtyLab.Experiment.compare([on, late], "h\n", "canonical")
+
+    wrong =
+      update_in(
+        off,
+        [:observation, :header, "spec", "terminal", "termios", "cc"],
+        &List.replace_at(&1, 16, 2)
+      )
+
+    assert {"mismatch", %{same_definition: false}} =
+             PtyLab.Experiment.compare([on, wrong], "h\n", "canonical")
+
+    unknown =
+      update_in(off, [:observation, :terminal_observations], fn [o] ->
+        [Map.delete(o, "canonical_mask")]
+      end)
+
+    assert {"mismatch", %{observed_terminal_configuration: false}} =
+             PtyLab.Experiment.compare([on, unknown], "h\n", "canonical")
+  end
+
+  defp canonical_cells do
+    Enum.zip(ls_cells(""), [true, false])
+    |> Enum.map(fn {cell, canonical} ->
+      cc = List.duplicate(0, 18) |> List.replace_at(16, 1)
+
+      config = %{
+        "termios" => %{
+          "echo" => false,
+          "canonical" => canonical,
+          "lflag" => if(canonical, do: 256, else: 0),
+          "cc" => cc
+        },
+        "dimensions" => %{"cols" => 80}
+      }
+
+      cell
+      |> Map.put(:requested_input_hex, Base.encode16("h\n"))
+      |> put_in([:observation, :header, "spec"], %{"attachment" => "slave", "terminal" => config})
+      |> put_in([:observation, :streams_hex, "input_written"], Base.encode16("h\n"))
+      |> put_in(
+        [:observation, :streams_hex, "pty_output"],
+        Base.encode16(
+          "READY\r\nWINDOW " <> if(canonical, do: "NONE", else: "68") <> "\r\nFINAL 680a\r\n"
+        )
+      )
+      |> update_in(
+        [:observation],
+        &Map.put(&1, :terminal_observations, [
+          %{
+            "phase" => "slave_before_spawn",
+            "echo_mask" => 8,
+            "canonical_mask" => 256,
+            "vmin_index" => 16,
+            "vtime_index" => 17,
+            "configuration" => config
+          }
+        ])
+      )
+    end)
+  end
+
   defp echo_cells do
     Enum.zip(ls_cells(""), [true, false])
     |> Enum.map(fn {cell, echo} ->
