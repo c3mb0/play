@@ -1,5 +1,5 @@
 [workspace]
-members = ["probes/topology_probe", "probes/lifetime_probe", "probes/hello_witness", "probes/byte_witness", "rust/pty_helper"]
+members = ["probes/topology_probe", "probes/lifetime_probe", "probes/hello_witness", "probes/byte_witness", "probes/operator_subject", "rust/pty_helper"]
 resolver = "2"
 
 [workspace.package]

@@ -48,6 +48,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "operator_subject"
+version = "0.1.0"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "pty_helper"
 version = "0.3.0"
 dependencies = [
