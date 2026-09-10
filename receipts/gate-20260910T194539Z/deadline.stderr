@@ -1,0 +1,3 @@
+{"controlling_tty":true,"event":"spawned","helper_version":"0.1.0","new_session":true,"pid":33758}
+{"deadline_ms":50,"event":"timeout"}
+{"event":"helper_error","message":"deadline exceeded"}

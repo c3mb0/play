@@ -1,0 +1,203 @@
+{
+  "schema": 1,
+  "kind": "phase-b-checkpoint",
+  "start": "2026-09-10T19:45:39.134617+00:00",
+  "platform": "macOS-26.6.1-arm64-arm-64bit",
+  "reference": "receipts/reference-20260910T194106Z",
+  "reference_manifest_sha256": "4802d949ee4961d2858440f9e87b13c32f21fcc520ce51b4575a8e77f6fcb9b1",
+  "argv": [
+    "/Users/cem/play/pty-lab/target/debug/topology_probe",
+    "--snapshot",
+    "/Users/cem/play/pty-lab/experiments/gate_001/scratch/observation.json"
+  ],
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "TERM": "xterm-256color"
+  },
+  "environment_sha256": "38c4cc106081b92684c2333c8f5f3fe17b09ffb50c28a08baddce4ce56cb5fda",
+  "cwd": "/Users/cem/play/pty-lab",
+  "executable_sha256": "34816412b0e6339f1bd1dda46e07eaeea0fa262244f1e51d1732279abe1c9283",
+  "helper_sha256": "9ea65cdf2aad71925df2e5d21243e62598ab5a9436d7de610221b722b0eabcc0",
+  "helper_version": "0.1.0",
+  "protocol_version": null,
+  "source_commit": "da1702011780bbe73d1d9c9038bc5cc8eb0d9e08",
+  "input_hex": "",
+  "retries": 0,
+  "cells": [
+    {
+      "cell": "slave",
+      "start": "2026-09-10T19:45:39.212659+00:00",
+      "command": [
+        "/Users/cem/play/pty-lab/target/debug/pty_helper",
+        "/Users/cem/play/pty-lab/receipts/gate-20260910T194539Z/terminal-config.json",
+        "slave",
+        "8000",
+        "--",
+        "/Users/cem/play/pty-lab/target/debug/topology_probe",
+        "--snapshot",
+        "/Users/cem/play/pty-lab/experiments/gate_001/scratch/observation.json"
+      ],
+      "outer_deadline_seconds": 10,
+      "end": "2026-09-10T19:45:39.772498+00:00",
+      "helper_exit_code": 0,
+      "events": [
+        {
+          "controlling_tty": false,
+          "event": "spawned",
+          "helper_version": "0.1.0",
+          "new_session": true,
+          "pid": 33752
+        },
+        {
+          "event": "master_end",
+          "read": 0
+        },
+        {
+          "code": 0,
+          "elapsed_ns": 178055292,
+          "event": "child_exit",
+          "signal": null
+        }
+      ],
+      "child_absent_after_helper_exit": true
+    },
+    {
+      "cell": "ctty",
+      "start": "2026-09-10T19:45:39.775964+00:00",
+      "command": [
+        "/Users/cem/play/pty-lab/target/debug/pty_helper",
+        "/Users/cem/play/pty-lab/receipts/gate-20260910T194539Z/terminal-config.json",
+        "ctty",
+        "8000",
+        "--",
+        "/Users/cem/play/pty-lab/target/debug/topology_probe",
+        "--snapshot",
+        "/Users/cem/play/pty-lab/experiments/gate_001/scratch/observation.json"
+      ],
+      "outer_deadline_seconds": 10,
+      "end": "2026-09-10T19:45:39.797256+00:00",
+      "helper_exit_code": 0,
+      "events": [
+        {
+          "controlling_tty": true,
+          "event": "spawned",
+          "helper_version": "0.1.0",
+          "new_session": true,
+          "pid": 33754
+        },
+        {
+          "event": "master_end",
+          "read": 0
+        },
+        {
+          "code": 0,
+          "elapsed_ns": 13293125,
+          "event": "child_exit",
+          "signal": null
+        }
+      ],
+      "child_absent_after_helper_exit": true
+    },
+    {
+      "cell": "missing-executable",
+      "start": "2026-09-10T19:45:39.799354+00:00",
+      "command": [
+        "/Users/cem/play/pty-lab/target/debug/pty_helper",
+        "/Users/cem/play/pty-lab/receipts/gate-20260910T194539Z/terminal-config.json",
+        "ctty",
+        "8000",
+        "--",
+        "/nonexistent/pty-lab-subject"
+      ],
+      "outer_deadline_seconds": 10,
+      "end": "2026-09-10T19:45:39.805669+00:00",
+      "helper_exit_code": 125,
+      "events": [
+        {
+          "errno": 2,
+          "event": "os_error",
+          "message": "No such file or directory (os error 2)",
+          "operation": "spawn/pre_exec"
+        },
+        {
+          "event": "helper_error",
+          "message": "No such file or directory (os error 2)"
+        }
+      ]
+    },
+    {
+      "cell": "deadline",
+      "start": "2026-09-10T19:45:39.806108+00:00",
+      "command": [
+        "/Users/cem/play/pty-lab/target/debug/pty_helper",
+        "/Users/cem/play/pty-lab/receipts/gate-20260910T194539Z/terminal-config.json",
+        "ctty",
+        "50",
+        "--",
+        "/bin/sleep",
+        "30"
+      ],
+      "outer_deadline_seconds": 10,
+      "end": "2026-09-10T19:45:39.869071+00:00",
+      "helper_exit_code": 125,
+      "events": [
+        {
+          "controlling_tty": true,
+          "event": "spawned",
+          "helper_version": "0.1.0",
+          "new_session": true,
+          "pid": 33758
+        },
+        {
+          "deadline_ms": 50,
+          "event": "timeout"
+        },
+        {
+          "event": "helper_error",
+          "message": "deadline exceeded"
+        }
+      ],
+      "child_absent_after_helper_exit": true
+    },
+    {
+      "cell": "exit-seven",
+      "start": "2026-09-10T19:45:39.870472+00:00",
+      "command": [
+        "/Users/cem/play/pty-lab/target/debug/pty_helper",
+        "/Users/cem/play/pty-lab/receipts/gate-20260910T194539Z/terminal-config.json",
+        "ctty",
+        "8000",
+        "--",
+        "/bin/sh",
+        "-c",
+        "exit 7"
+      ],
+      "outer_deadline_seconds": 10,
+      "end": "2026-09-10T19:45:39.895783+00:00",
+      "helper_exit_code": 7,
+      "events": [
+        {
+          "controlling_tty": true,
+          "event": "spawned",
+          "helper_version": "0.1.0",
+          "new_session": true,
+          "pid": 33760
+        },
+        {
+          "event": "master_end",
+          "read": 0
+        },
+        {
+          "code": 7,
+          "elapsed_ns": 15942417,
+          "event": "child_exit",
+          "signal": null
+        }
+      ],
+      "child_absent_after_helper_exit": true
+    }
+  ],
+  "outcome": "pass",
+  "end": "2026-09-10T19:45:39.896278+00:00"
+}
