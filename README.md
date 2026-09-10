@@ -3,7 +3,14 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
-**Phase C ownership checkpoint: observed PASS on macOS 26.6.1 arm64.**
+**Phase D receipt checkpoint: observed PASS on macOS 26.6.1 arm64.**
+Standalone session receipts now include binary fingerprints, helper/runtime
+versions and a language-neutral environment hash. A real BEAM SIGKILL left a
+partial journal that a fresh BEAM recovered byte-for-byte as incomplete/unknown.
+All 14 receipt checks and the nine-session ownership regression passed. See
+[receipt semantics and recovery](RECEIPTS.md).
+
+The preceding Phase C ownership checkpoint also passed:
 Nine OTP sessions covered topology, binary input, helper murder under pipes and
 PTY, worker kill, timeout, and successful execution after faults in the same
 BEAM. All reported processes in the fault cells were absent within three seconds.
@@ -38,6 +45,8 @@ projection cannot distinguish the controlling-PTY cell from the reference.
 * [Passing ownership receipt](receipts/ownership-20260910T195848Z/manifest.json)
 * [Framing evidence](receipts/protocol-20260910T195847Z/manifest.json)
 * [Preserved failed first ownership run](receipts/ownership-20260910T195717Z/manifest.json)
+* [Receipt checkpoint](experiments/receipt_001/RESULT.md)
+* [Phase D evidence](receipts/receipt-20260910T202559Z/manifest.json)
 
 The first ownership run failed because Rust buffered non-newline protocol
 events. Direct descriptor writes fixed the transport; a new, separately recorded
@@ -73,6 +82,7 @@ On this laptop add `/opt/homebrew/bin` alongside the Rust toolchain to PATH:
 make otp-check       # compile, EUnit, cross-reference analysis
 make protocol-check # real fragmented/coalesced/rejected frames; new evidence
 make ownership-check # nine bounded sessions; new evidence, no retries
+make receipt-check   # standalone metadata, BEAM kill, lossless recovery
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across

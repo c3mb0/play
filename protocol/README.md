@@ -61,6 +61,9 @@ on covered worker/helper paths. The independent receipt writer records worker
 death. BEAM/receipt-writer death can leave an unsealed partial journal; it remains
 evidence and is not falsely completed on restart.
 
+Phase D adds self-contained receipt header schema 2 and explicit snapshot recovery
+without changing this wire protocol. See [receipt semantics](../RECEIPTS.md).
+
 ## Ownership and bounds
 
 ```text
