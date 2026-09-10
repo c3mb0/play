@@ -1,8 +1,13 @@
 defmodule PtyLab.Experiment do
-  @moduledoc "A bounded hello-world matched-pair experiment over the Erlang session API."
+  @moduledoc "Bounded matched-pair witnesses over the Erlang session API."
 
   @doc "Runs declared pairs, preserving raw receipts and writing a separate interpretation."
-  def run_hello_pairs(options) do
+  def run_hello_pairs(options), do: run_pairs(options, :hello)
+
+  @doc "Runs the predeclared installed ls layout witness with no input."
+  def run_ls_pairs(options), do: run_pairs(options, :ls)
+
+  defp run_pairs(options, witness) do
     root = Path.expand(Map.fetch!(options, :root))
     directory = Path.expand(Map.fetch!(options, :directory))
     pairs = Map.get(options, :pairs, 3)
@@ -19,24 +24,30 @@ defmodule PtyLab.Experiment do
     definition = %{
       root: root,
       directory: directory,
-      experiment: Map.get(options, :name, "hello_pairs"),
+      experiment: Map.get(options, :name, "#{witness}_pairs"),
+      witness: Atom.to_string(witness),
       pairs: pairs,
       max_concurrency: concurrency,
       order: ["pipe", "slave"],
       continuation: "continue_remaining_pairs",
       session_deadline_ms: 5000,
-      input_delay_ms: 100,
-      input_anchor: "received spawned",
-      expected_input: "hello\n",
+      input_delay_ms: if(witness == :hello, do: 100, else: 0),
+      input_anchor: if(witness == :hello, do: "received spawned", else: "no input"),
+      expected_input: if(witness == :hello, do: "hello\n", else: ""),
       retries: 0,
       input_overrides: Map.get(options, :input_overrides, %{}),
       executable_overrides: Map.get(options, :executable_overrides, %{}),
       terminal: :json.decode(config_bytes),
       terminal_config_sha256: hash(config_bytes),
       spec: %{
-        "executable" => Path.join(root, "target/debug/hello_witness"),
+        "executable" =>
+          if(witness == :hello,
+            do: Path.join(root, "target/debug/hello_witness"),
+            else: "/bin/ls"
+          ),
         "argv" => [],
-        "cwd" => root,
+        "cwd" =>
+          if(witness == :hello, do: root, else: Path.join(root, "experiments/ls_001/fixture")),
         "environment" => %{"PATH" => "/usr/bin:/bin", "LANG" => "C", "TERM" => "xterm-256color"}
       }
     }
@@ -87,7 +98,7 @@ defmodule PtyLab.Experiment do
       pairs: results,
       outcome: if(Map.get(counts, "pass", 0) == pairs, do: "pass", else: "anomalies"),
       limits:
-        "Constructed witness only; fixed timing policy is not identical scheduling; cleanup results are not OS absence proof"
+        "Declared witness and fixture only; fixed timing policy is not identical scheduling; cleanup results are not OS absence proof"
     }
 
     report_file = Path.join(directory, "report.json")
@@ -100,8 +111,9 @@ defmodule PtyLab.Experiment do
   defp pair(index, definition) do
     input = Map.get(definition.input_overrides, index, definition.expected_input)
 
-    unless is_binary(input) and byte_size(input) < 1024 and String.ends_with?(input, "\n"),
-      do: raise(ArgumentError, "input must be a bounded newline-terminated binary")
+    unless is_binary(input) and byte_size(input) < 1024 and
+             (String.ends_with?(input, "\n") or (definition.witness == "ls" and input == "")),
+           do: raise(ArgumentError, "input must be a bounded newline-terminated binary")
 
     spec =
       definition.spec
@@ -112,7 +124,7 @@ defmodule PtyLab.Experiment do
       |> Map.put("terminal", definition.terminal)
 
     cells = Enum.map(definition.order, &cell(index, &1, input, spec, definition))
-    {outcome, checks} = compare(cells, definition.expected_input)
+    {outcome, checks} = compare(cells, definition.expected_input, definition.witness)
 
     %{
       pair: index,
@@ -161,32 +173,36 @@ defmodule PtyLab.Experiment do
       case :pty_session.start_session(options) do
         {:ok, handle} ->
           input_result =
-            case :pty_session.await_event(handle, "spawned", 1000) do
-              {:ok, _} ->
-                anchor = System.monotonic_time(:nanosecond)
+            if input == "" do
+              :no_input
+            else
+              case :pty_session.await_event(handle, "spawned", 1000) do
+                {:ok, _} ->
+                  anchor = System.monotonic_time(:nanosecond)
 
-                :ok =
-                  :receipt_writer.event(handle.worker, "input_timing_policy", %{
-                    delay_ms: definition.input_delay_ms,
-                    anchor: "experiment receives spawned",
-                    spawn_received_monotonic_ns: anchor
-                  })
+                  :ok =
+                    :receipt_writer.event(handle.worker, "input_timing_policy", %{
+                      delay_ms: definition.input_delay_ms,
+                      anchor: "experiment receives spawned",
+                      spawn_received_monotonic_ns: anchor
+                    })
 
-                receive do
-                after
-                  definition.input_delay_ms -> :ok
-                end
+                  receive do
+                  after
+                    definition.input_delay_ms -> :ok
+                  end
 
-                :ok =
-                  :receipt_writer.event(handle.worker, "input_timing_observation", %{
-                    delay_ns: System.monotonic_time(:nanosecond) - anchor,
-                    meaning: "write-request preparation; not OS delivery"
-                  })
+                  :ok =
+                    :receipt_writer.event(handle.worker, "input_timing_observation", %{
+                      delay_ns: System.monotonic_time(:nanosecond) - anchor,
+                      meaning: "write-request preparation; not OS delivery"
+                    })
 
-                :pty_session.send_input(handle, input)
+                  :pty_session.send_input(handle, input)
 
-              {:error, reason} ->
-                {:error, reason}
+                {:error, reason} ->
+                  {:error, reason}
+              end
             end
 
           case :pty_session.await_result(handle, 6500) do
@@ -253,7 +269,7 @@ defmodule PtyLab.Experiment do
   end
 
   @doc false
-  def compare(cells, expected_input) do
+  def compare(cells, expected_input, witness \\ "hello") do
     complete =
       Enum.all?(cells, fn c ->
         c.session.outcome == "completed" and c.session[:receipt_status] == "sealed" and
@@ -267,14 +283,6 @@ defmodule PtyLab.Experiment do
       [pipe, pty] = cells
       a = pipe.observation.header
       b = pty.observation.header
-      expected_pipe = "received: " <> expected_input
-      echo = String.replace(expected_input, "\n", "\r\n")
-
-      expected_pty = [
-        "input> " <> echo <> "received: " <> echo,
-        echo <> "input> received: " <> echo
-      ]
-
       actual_pipe = Base.decode16!(pipe.observation.streams_hex["stdout"])
       actual_pty = Base.decode16!(pty.observation.streams_hex["pty_output"])
 
@@ -293,14 +301,26 @@ defmodule PtyLab.Experiment do
           ),
         declared_input: pipe.requested_input_hex == Base.encode16(expected_input),
         pipe_output:
-          actual_pipe == expected_pipe and pipe.observation.streams_hex["stderr"] == "",
-        pty_output: actual_pty in expected_pty
+          pipe_matches?(actual_pipe, expected_input, witness) and
+            pipe.observation.streams_hex["stderr"] == "",
+        pty_output: pty_matches?(actual_pty, expected_input, witness)
       }
 
       {if(Enum.all?(checks, fn {_, value} -> value end), do: "pass", else: "mismatch"), checks}
     else
       {"execution_failure", %{sessions_completed_with_verified_zero_exits: false}}
     end
+  end
+
+  defp pipe_matches?(bytes, _, "ls"), do: bytes == "alpha\nbravo\ncharlie\n"
+  defp pipe_matches?(bytes, input, "hello"), do: bytes == "received: " <> input
+
+  defp pty_matches?(bytes, _, "ls"),
+    do: Regex.match?(~r/\Aalpha[ \t]+bravo[ \t]+charlie\r\n\z/, bytes)
+
+  defp pty_matches?(bytes, input, "hello") do
+    echo = String.replace(input, "\n", "\r\n")
+    bytes in ["input> " <> echo <> "received: " <> echo, echo <> "input> received: " <> echo]
   end
 
   defp receipt_path(definition, index, mode),

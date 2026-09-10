@@ -17,7 +17,7 @@ lint:
 	$(PYTHON) -m py_compile experiments/ownership_001/run.py experiments/ownership_001/protocol_check.py
 	$(PYTHON) -m py_compile experiments/receipt_001/run.py
 	$(PYTHON) -m py_compile experiments/witness_001/run.py
-	$(PYTHON) -m py_compile experiments/isolation_001/run.py experiments/elixir_001/run.py
+	$(PYTHON) -m py_compile experiments/isolation_001/run.py experiments/elixir_001/run.py experiments/ls_001/run.py
 
 otp-build:
 	cd erlang/pty_lab && $(REBAR3) compile
@@ -57,3 +57,7 @@ check: build
 
 reference: build
 	$(PYTHON) experiments/gate_001/reference.py
+
+.PHONY: ls-check
+ls-check: build elixir-build
+	$(PYTHON) experiments/ls_001/run.py
