@@ -3,6 +3,13 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
+**First unmodified application witness: observed PASS.**
+Installed `/bin/ls`, identical empty argv/input, environment and fixed directory:
+three pipe runs printed one filename per line; three PTY runs printed one row
+with tabs. Receipts, fixture integrity and bounded cleanup checks passed.
+One earlier digest-text checker failure is preserved separately.
+[Result and both attempts](experiments/ls_001/RESULT.md).
+
 **Plumbing isolation and the thin Elixir experiment layer: observed PASS.**
 Elixir schedules bounded hello-world pairs through the public Erlang session API.
 Three normal pairs passed; separate deliberate mismatch and execution-failure
@@ -106,6 +113,7 @@ make witness-check   # hello-world prompt flip, one matched pair
 make isolation-check # identity, writer/Port failures, healthy siblings
 make elixir-test     # formatting and classification unit test
 make elixir-check    # nine pairs including two deliberate anomalies
+make ls-check        # three unmodified ls pairs, fixed fixture, no input
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across

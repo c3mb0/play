@@ -1,4 +1,4 @@
-# Bounded hello-world experiment API
+# Bounded witness experiment API
 
 Elixir defines and compares experiments; Erlang owns sessions and raw receipts;
 Rust owns process and terminal mechanisms. This layer adds no OS control code.
@@ -51,5 +51,17 @@ output directory raises instead of overwriting evidence.
 
 Report cleanup fields remain unverified: a session result is not proof of OS
 process absence. The external acceptance runner independently checks reported
-PIDs. These are local checksummed artifacts, not WORM storage. Only the
-constructed witness on macOS is validated; this is not a general experiment DSL.
+PIDs. These are local checksummed artifacts, not WORM storage. The hello-world API validates its
+constructed witness on macOS; this is not a general experiment DSL.
+
+## Installed ls witness
+
+`PtyLab.Experiment.run_ls_pairs/1` takes the same root, fresh directory, name,
+pairs and max_concurrency options. It uses `/bin/ls`, empty argv, the committed
+`experiments/ls_001/fixture` directory, and no input writes or input delay.
+Its predicate requires one filename per pipe line and a single PTY row separated
+by ASCII spaces/tabs. All raw bytes remain in the journals. Use `make ls-check`
+for the outer fixture, subject fingerprint, scheduling and process-absence checks.
+Those checks are acceptance-runner responsibilities, not claims made by calling
+the Elixir function alone. The installed macOS ls witness now joins the
+constructed hello-world witness; other platforms remain untested.

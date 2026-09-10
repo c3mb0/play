@@ -1,6 +1,30 @@
 # Checkpoint handoff
 
-## Current: plumbing isolation and thin Elixir plane, 2026-09-10
+## Current: unmodified ls witness, 2026-09-11 local / 2026-09-10 UTC
+
+Completed three matched /bin/ls pipe/PTY pairs through shared Elixir scheduling.
+Prediction was predeclared in 3e96d8f; initial runner source 88c5d43. First attempt
+ls-20260910T210550Z preserved as failed: uppercase/lowercase digest-text assertion
+in Python after the three Elixir layout comparisons passed. No bounded cleanup
+or post-run fixture evidence is claimed for that interrupted checker.
+
+Committed the explicit correction and second-run declaration in 149172b, then
+ls-20260910T210628Z passed in 1.503 seconds: six sealed verified receipts, fixture
+and subject hashes unchanged, maximum concurrency two, all eighteen reported PIDs
+absent. Pipe bytes alpha\nbravo\ncharlie\n; PTY bytes
+alpha\tbravo\tcharlie\r\n in all three pairs. Two explicit attempts, no automatic
+retries. Original failed evidence unchanged, predicates unchanged.
+
+Three Elixir tests, formatting/compilation, Clippy/Python checks passed. Existing
+Elixir normal/mismatch/execution-failure runtime regression passed in
+elixir-20260910T210629Z. No Rust or Erlang mechanism changes. See
+experiments/ls_001/RESULT.md and `make ls-check`.
+
+Next candidate: predeclare echo on/off for the existing hello-world witness.
+No echo-axis implementation or new experiment has been started. Do not expand
+the matrix automatically. Existing guardian/descendant/platform limits persist.
+
+## Historical: plumbing isolation and thin Elixir plane, 2026-09-10
 
 Completed the approved bounded plumbing pass before adding Elixir. Full four-part
 session identity, checked Port sends, isolated receipt errors, writer-death
