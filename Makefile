@@ -4,7 +4,7 @@ PYTHON ?= python3
 REBAR3 ?= rebar3
 REFERENCE ?= receipts/reference-20260910T194106Z
 
-.PHONY: build lint check reference otp-build otp-check ownership-check protocol-check
+.PHONY: build lint check reference otp-build otp-check ownership-check protocol-check receipt-check
 build:
 	$(CARGO) build --workspace --locked
 
@@ -13,6 +13,7 @@ lint:
 	$(CARGO) clippy --workspace --all-targets --locked -- -D warnings
 	$(PYTHON) -m py_compile experiments/gate_001/reference.py experiments/gate_001/check.py
 	$(PYTHON) -m py_compile experiments/ownership_001/run.py experiments/ownership_001/protocol_check.py
+	$(PYTHON) -m py_compile experiments/receipt_001/run.py
 
 otp-build:
 	cd erlang/pty_lab && $(REBAR3) compile
@@ -26,6 +27,9 @@ protocol-check: build
 
 ownership-check: build otp-build
 	$(PYTHON) experiments/ownership_001/run.py
+
+receipt-check: build otp-build
+	$(PYTHON) experiments/receipt_001/run.py
 
 check: build
 	$(PYTHON) experiments/gate_001/check.py "$(REFERENCE)"

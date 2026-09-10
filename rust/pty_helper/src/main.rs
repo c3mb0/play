@@ -250,6 +250,13 @@ fn run() -> Result<i32, Box<dyn std::error::Error>> {
 fn main() {
     let mode = std::env::args().nth(1);
     let result = match mode.as_deref() {
+        Some("--metadata") => {
+            println!(
+                "{}",
+                json!({"helper_version":env!("CARGO_PKG_VERSION"), "protocol_version":1})
+            );
+            Ok(0)
+        }
         Some("--port") => port::relay(),
         Some("--guardian") => port::guardian(),
         Some("--alive") => port::alive(),

@@ -16,12 +16,7 @@ handle_call({open, Worker, Options, Identity, Owner}, _From, State) ->
     {ok, Fd} = file:open(File, [write, binary, exclusive, raw]),
     Monitor = erlang:monitor(process, Worker),
     Entry = #{fd => Fd, file => File, identity => Identity, seq => 0, monitor => Monitor, owner => Owner},
-    E = append(Entry, <<"session_start">>, #{spec => maps:get(spec, Options),
-        deadline_ms => maps:get(deadline_ms, Options), protocol_version => 1,
-        environment_sha256 => binary:encode_hex(crypto:hash(sha256,
-            term_to_binary(lists:sort(maps:to_list(maps:get(<<"environment">>, maps:get(spec, Options))))))),
-        environment_fingerprint_encoding => <<"Erlang external term: sorted key/value list">>,
-        helper => list_to_binary(maps:get(helper, Options)), retries => 0}),
+    E = append(Entry, <<"session_start">>, maps:get(metadata, Options)),
     {reply, ok, State#{Id => E}};
 handle_call({event, Id, Kind, Data}, _From, State) ->
     E = append(maps:get(Id, State), Kind, Data),
