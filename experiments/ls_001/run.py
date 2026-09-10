@@ -1,6 +1,5 @@
 #!/usr/bin/env python3
 """Bounded custody and independent acceptance for the installed ls witness."""
-import hashlib
 import json
 import os
 from pathlib import Path
@@ -69,7 +68,7 @@ def main():
                     intervals.extend([(start, 1), (end, -1)])
                     assert cell["requested_input_hex"] == ""
                     assert cell["observation"]["streams_hex"]["input_written"] == ""
-                    assert cell["observation"]["header"]["executable"]["sha256"] == manifest["subject_sha256_before"]
+                    assert bytes.fromhex(cell["observation"]["header"]["executable"]["sha256"]) == bytes.fromhex(manifest["subject_sha256_before"])
                     for event in events:
                         if event["event"] == "port_open": pids.add(event["data"]["helper_pid"])
                         if event["event"] == "helper_event" and event["data"]["event"] == "spawned":

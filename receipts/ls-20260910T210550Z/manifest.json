@@ -1,0 +1,11 @@
+{
+  "start": "2026-09-10T21:05:50.768168+00:00",
+  "retries": 0,
+  "outer_timeout_seconds": 60,
+  "source_commit": "88c5d43eca8813fbbe70516a5320326b75604eb5",
+  "subject_sha256_before": "a1cb6fd856f9414ada4cc9682f137c343261d777b8374df1abac7a931fb66f7a",
+  "mix_exit_code": 0,
+  "outcome": "failed",
+  "error": "AssertionError()",
+  "end": "2026-09-10T21:05:52.738704+00:00"
+}

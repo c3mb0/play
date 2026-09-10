@@ -33,3 +33,17 @@ Failures remain failures with raw receipts preserved: no predicate changes or
 rerun to obtain a green result. This experiment tests the installed macOS ls and
 this fixture only. It does not isolate individual stdio descriptors or add a new
 terminal axis. Echo on/off is a subsequent, separate checkpoint.
+
+## Explicit harness correction after first run
+
+First run ls-20260910T210550Z (source 88c5d43) remains failed. Elixir recorded
+three passing layout pairs, but Python compared uppercase Erlang SHA-256 text
+with lowercase Python SHA-256 text and stopped before the post-run fixture and
+bounded PID checks. The digest bytes are equal. No original artifacts change.
+
+Correct that checker to compare decoded digest bytes, then execute ONE separately
+identified validation run. This explicitly revises the no-rerun rule for this
+identified harness defect, not for a subject mismatch. Keep every output predicate,
+fixture, bound and subject definition unchanged. Preserve both runs and their
+source commits; report two attempts, zero automatic retries. If the second run
+fails, retain it and report the remaining limitation rather than tuning predicates.
