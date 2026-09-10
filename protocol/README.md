@@ -109,3 +109,16 @@ Canonical readback also reports native `canonical_mask`, `vmin_index` and
 `vtime_index`. These additive identifiers let the experiment verify its
 platform-specific flag/cc interpretation. They do not change terminal setup or
 add a raw-mode command. Older receipts may omit them.
+
+## Interactive extension
+
+Opt-in `spec.interactive: true` selects native cooked termios and a 65536-byte
+output-credit window. Existing lab specifications keep their explicit termios and
+uncredited output behavior. `credit(bytes)` returns 1..65536 consumed bytes without
+exceeding the original window; zero credit pauses PTY reads, not command handling.
+`resize(rows, cols)` uses TIOCSWINSZ and acknowledges TIOCGWINSZ in `resized`.
+`close` requests bounded terminal hangup/escalation and emits `closed` with its
+unverified process-group scope. See the interactive API contract.
+
+Interactive child_exit is emitted as soon as wait status is available, independently
+of stream_end. Output remains ordered and credited until EOF or explicit close.

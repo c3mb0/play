@@ -1,5 +1,5 @@
 -module(pty_session).
--export([start_session/1, send_input/2, close_stdin/1, terminate/1, await_result/2, await_event/3]).
+-export([start_interactive/1, interactive_command/2, start_session/1, send_input/2, close_stdin/1, terminate/1, await_result/2, await_event/3]).
 
 start_session(Options0) ->
     try
@@ -34,3 +34,10 @@ await_event(#{key := Key, owner := Owner}, Name, Timeout)
   when Owner =:= self(), is_integer(Timeout), Timeout >= 0 ->
     receive {session_event, Key, #{<<"event">> := Name} = Event} -> {ok, Event}
     after Timeout -> {error, event_timeout} end.
+
+%% Separate policy: no journal or experiment deadline. The caller is the owner.
+start_interactive(Options) ->
+    supervisor:start_child(session_sup, #{id=>make_ref(),
+        start=>{interactive_session,start_link,[Options#{owner=>self()}]},
+        restart=>temporary,shutdown=>2500}).
+interactive_command(Worker,Command) -> interactive_session:command(Worker,Command).

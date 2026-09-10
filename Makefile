@@ -77,3 +77,7 @@ width-check: build elixir-build
 .PHONY: operator-check
 operator-check: build elixir-build
 	$(PYTHON) experiments/operator_001/run.py
+
+.PHONY: interactive-check
+interactive-check: build otp-check
+	$(PYTHON) tests/interactive_check.py

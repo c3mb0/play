@@ -49,3 +49,35 @@ Legacy experiment code may still use session_worker/session_sup directly and
 receive its session-name notifications. New callers must use pty_session; external
 receipt annotations use a worker PID (or the full identity key), never a short
 session name. No experiment policy is implemented by this API.
+
+## Interactive sessions
+
+`start_interactive(#{helper => AbsoluteCharlist, identity => BinaryKeyMap,
+spec => BinaryKeyMap}) -> {ok, Worker} | {error, Reason}` starts a separately
+supervised, unrecorded session owned by the calling process. There is no experiment
+deadline and no receipt writer involvement. The helper supplies native cooked
+termios when `interactive` is true. Caller supplies environment, cwd and dimensions.
+
+`interactive_command(Worker, Command)` accepts write, resize, credit and close only
+from that owner. Events arrive as `{interactive_event, Worker, Event}`; helper
+completion as `{interactive_end, Worker, Code}` and protocol/transport failure as
+`{interactive_failure, Worker, Reason}`. A child_exit is separate from stream EOF.
+Input should stop at child_exit; outstanding output still needs credits.
+
+Output starts with 65536 bytes of credit. Return consumed bytes with
+`#{<<"command">> => <<"credit">>, <<"bytes">> => N}` only after downstream
+processing. The worker validates credit against delivered output, preventing an
+owner from expanding the window. No raw input/output is journaled. The window
+bounds output in the owner mailbox even when that owner stops processing.
+
+Resize accepts rows 1..1000 and cols 2..1000 and emits observed `resized` dimensions.
+Close rejects subsequent calls, requests hangup and bounds the helper response to
+2 seconds. Owner death disables control immediately, waits a 2-second grace, then
+closes. There is deliberately no rebind/detach/replay API. Closing the Port is the
+fallback if helper cleanup stalls.
+
+Interactive cleanup sends HUP/CONT to the owned shell process group and sampled
+foreground terminal process group, closes the master, then escalates those groups
+to KILL after 150 ms. It does not enumerate background or escaped descendants.
+`closed` reports the scope and `verified:false`; independent process checks remain
+necessary for cleanup proof. Legacy start_session behavior is unchanged.

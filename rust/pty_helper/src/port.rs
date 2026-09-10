@@ -144,6 +144,9 @@ struct Subject {
     eof_requested: bool,
     pipe: bool,
     status: Option<std::process::ExitStatus>,
+    interactive: bool,
+    credit: usize,
+    exit_reported: bool,
 }
 
 fn file<T: std::os::fd::IntoRawFd>(fd: T) -> File {
@@ -205,22 +208,48 @@ fn spawn(spec: &Value) -> Result<Subject> {
         let t = &spec["terminal"]["termios"];
         let w = &spec["terminal"]["dimensions"];
         let mut term: libc::termios = unsafe { std::mem::zeroed() };
-        term.c_iflag = super::native_number(t, "iflag")?;
-        term.c_oflag = super::native_number(t, "oflag")?;
-        term.c_cflag = super::native_number(t, "cflag")?;
-        term.c_lflag = super::native_number(t, "lflag")?;
-        let cc = t["cc"].as_array().ok_or("missing cc")?;
-        if cc.len() != term.c_cc.len() {
-            return Err("platform NCCS mismatch".into());
-        }
-        for (dst, src) in term.c_cc.iter_mut().zip(cc) {
-            *dst = src.as_u64().ok_or("invalid cc")?.try_into()?;
-        }
-        if unsafe { libc::cfsetispeed(&mut term, super::native_number(t, "ispeed")?) } < 0 {
-            return Err(io::Error::last_os_error().into());
-        }
-        if unsafe { libc::cfsetospeed(&mut term, super::native_number(t, "ospeed")?) } < 0 {
-            return Err(io::Error::last_os_error().into());
+        if spec["interactive"] == true {
+            term.c_iflag = libc::ICRNL | libc::IXON;
+            term.c_oflag = libc::OPOST | libc::ONLCR;
+            term.c_cflag = libc::CREAD | libc::CS8;
+            term.c_lflag =
+                libc::ISIG | libc::ICANON | libc::ECHO | libc::ECHOE | libc::ECHOK | libc::IEXTEN;
+            for (index, value) in [
+                (libc::VINTR, 3),
+                (libc::VQUIT, 28),
+                (libc::VERASE, 127),
+                (libc::VKILL, 21),
+                (libc::VEOF, 4),
+                (libc::VSTART, 17),
+                (libc::VSTOP, 19),
+                (libc::VSUSP, 26),
+                (libc::VMIN, 1),
+                (libc::VTIME, 0),
+            ] {
+                term.c_cc[index] = value;
+            }
+            unsafe {
+                libc::cfsetispeed(&mut term, libc::B38400);
+                libc::cfsetospeed(&mut term, libc::B38400);
+            }
+        } else {
+            term.c_iflag = super::native_number(t, "iflag")?;
+            term.c_oflag = super::native_number(t, "oflag")?;
+            term.c_cflag = super::native_number(t, "cflag")?;
+            term.c_lflag = super::native_number(t, "lflag")?;
+            let cc = t["cc"].as_array().ok_or("missing cc")?;
+            if cc.len() != term.c_cc.len() {
+                return Err("platform NCCS mismatch".into());
+            }
+            for (dst, src) in term.c_cc.iter_mut().zip(cc) {
+                *dst = src.as_u64().ok_or("invalid cc")?.try_into()?;
+            }
+            if unsafe { libc::cfsetispeed(&mut term, super::native_number(t, "ispeed")?) } < 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            if unsafe { libc::cfsetospeed(&mut term, super::native_number(t, "ospeed")?) } < 0 {
+                return Err(io::Error::last_os_error().into());
+            }
         }
         let mut win = libc::winsize {
             ws_row: super::native_number(w, "rows")?,
@@ -298,7 +327,44 @@ fn spawn(spec: &Value) -> Result<Subject> {
         eof_requested: false,
         pipe: mode == "pipe",
         status: None,
+        interactive: spec["interactive"] == true,
+        credit: if spec["interactive"] == true {
+            65536
+        } else {
+            usize::MAX
+        },
+        exit_reported: false,
     })
+}
+
+impl Drop for Subject {
+    fn drop(&mut self) {
+        if !self.interactive {
+            return;
+        }
+        // Only the owned shell group and the currently foreground terminal group.
+        let shell = self.child.0.id() as i32;
+        let foreground = self
+            .input
+            .as_ref()
+            .map(|f| unsafe { libc::tcgetpgrp(f.as_raw_fd()) })
+            .unwrap_or(-1);
+        let groups: Vec<i32> = [shell, foreground].into_iter().filter(|g| *g > 1).collect();
+        for g in &groups {
+            unsafe {
+                libc::kill(-*g, libc::SIGHUP);
+                libc::kill(-*g, libc::SIGCONT);
+            }
+        }
+        self.input.take();
+        self.readers.clear();
+        std::thread::sleep(Duration::from_millis(150));
+        for g in &groups {
+            unsafe {
+                libc::kill(-*g, libc::SIGKILL);
+            }
+        }
+    }
 }
 
 struct Session {
@@ -367,6 +433,54 @@ fn command(
             s.pending.extend(bytes);
             session.emit(frames, "write_queued", json!({"command_seq":sequence}))?;
         }
+        "credit" => {
+            let s = subject.as_mut().ok_or("credit before spawn")?;
+            let n = value["bytes"].as_u64().ok_or("invalid credit")? as usize;
+            if !s.interactive || n == 0 || n > 65536 || s.credit + n > 65536 {
+                return Err("credit outside output window".into());
+            }
+            s.credit += n;
+        }
+        "resize" => {
+            let s = subject.as_mut().ok_or("resize before spawn")?;
+            if s.pipe {
+                return Err("resize requires PTY".into());
+            }
+            let rows: u16 = super::native_number(&value, "rows")?;
+            let cols: u16 = super::native_number(&value, "cols")?;
+            if !(1..=1000).contains(&rows) || !(2..=1000).contains(&cols) {
+                return Err("invalid dimensions".into());
+            }
+            let fd = s.input.as_ref().ok_or("terminal closed")?.as_raw_fd();
+            let win = libc::winsize {
+                ws_row: rows,
+                ws_col: cols,
+                ws_xpixel: 0,
+                ws_ypixel: 0,
+            };
+            if unsafe { libc::ioctl(fd, libc::TIOCSWINSZ, &win) } < 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            let mut observed: libc::winsize = unsafe { std::mem::zeroed() };
+            if unsafe { libc::ioctl(fd, libc::TIOCGWINSZ, &mut observed) } < 0 {
+                return Err(io::Error::last_os_error().into());
+            }
+            session.emit(
+                frames,
+                "resized",
+                json!({"rows":observed.ws_row,"cols":observed.ws_col,"command_seq":sequence}),
+            )?;
+        }
+        "close" => {
+            let s = subject.take().ok_or("close before spawn")?;
+            drop(s);
+            session.emit(
+                frames,
+                "closed",
+                json!({"scope":"shell_and_foreground_groups","verified":false}),
+            )?;
+            frames.eof = true;
+        }
         "close_stdin" => {
             let s = subject.as_mut().ok_or("close before spawn")?;
             if !s.pipe {
@@ -425,7 +539,8 @@ pub fn guardian() -> Result<i32> {
                 if let Some(s) = subject.as_mut() {
                     if let Some(input) = s.input.as_mut() {
                         if !s.pending.is_empty() {
-                            match input.write(s.pending.make_contiguous()) {
+                            let count = s.pending.len().min(4096);
+                            match input.write(&s.pending.make_contiguous()[..count]) {
                                 Ok(0) => return Err("subject stdin closed".into()),
                                 Ok(n) => {
                                     let bytes: Vec<u8> = s.pending.drain(..n).collect();
@@ -444,16 +559,21 @@ pub fn guardian() -> Result<i32> {
                         session.emit(&mut frames, "stdin_closed", json!({}))?;
                     }
                     let mut index = 0;
-                    while index < s.readers.len() {
+                    while index < s.readers.len() && s.credit > 0 && frames.output.len() < LIMIT / 2
+                    {
                         let (name, reader) = &mut s.readers[index];
                         let mut bytes = [0; 4096];
-                        match reader.read(&mut bytes) {
+                        let available = bytes.len().min(s.credit);
+                        match reader.read(&mut bytes[..available]) {
                             Ok(0) => {
                                 session.emit(&mut frames, "stream_end", json!({"stream":name}))?;
                                 s.readers.remove(index);
                                 continue;
                             }
                             Ok(n) => {
+                                if s.interactive {
+                                    s.credit -= n;
+                                }
                                 session.emit(&mut frames, name, json!({"hex":hex(&bytes[..n])}))?
                             }
                             Err(e) if temporary(&e) => {}
@@ -477,12 +597,15 @@ pub fn guardian() -> Result<i32> {
                         s.status = s.child.0.try_wait()?;
                     }
                     if let Some(status) = s.status {
-                        if s.readers.is_empty() {
+                        if !s.exit_reported && (s.interactive || s.readers.is_empty()) {
+                            s.exit_reported = true;
                             session.emit(
                                 &mut frames,
                                 "child_exit",
                                 json!({"code":status.code(),"signal":status.signal()}),
                             )?;
+                        }
+                        if s.readers.is_empty() {
                             finishing = Some(Instant::now());
                         }
                     }
@@ -491,6 +614,11 @@ pub fn guardian() -> Result<i32> {
             })();
             if frames.eof {
                 drop(subject);
+                let until = Instant::now() + Duration::from_secs(1);
+                while !frames.output.is_empty() && Instant::now() < until {
+                    frames.flush()?;
+                    std::thread::sleep(Duration::from_millis(2));
+                }
                 return Ok(0);
             }
             if let Err(error) = result {
