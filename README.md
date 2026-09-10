@@ -3,6 +3,12 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
+**First terminal-state axis: echo on/off, observed PASS.**
+Three PTY/PTY pairs kept the same hello-world subject and input. Turning off ECHO
+removed the terminal's echoed input while preserving the application's prompt
+and reply. Kernel readback confirmed exactly the intended configuration change.
+[Result and raw bytes](experiments/echo_001/RESULT.md).
+
 **First unmodified application witness: observed PASS.**
 Installed `/bin/ls`, identical empty argv/input, environment and fixed directory:
 three pipe runs printed one filename per line; three PTY runs printed one row
@@ -39,7 +45,7 @@ Nine OTP sessions covered topology, binary input, helper murder under pipes and
 PTY, worker kill, timeout, and successful execution after faults in the same
 BEAM. All reported processes in the fault cells were absent within three seconds.
 The SIGHUP-ignoring lifetime probe makes cleanup independent of terminal hangup.
-No NIF, UI or terminal state matrix exists yet.
+No NIF or UI exists. ECHO is the only tested terminal-state axis; no factorial matrix exists.
 
 The earlier Phase A/B gate reproduced the real macOS Terminal reference on the
 terminal dimensions declared before measurement:
@@ -114,6 +120,7 @@ make isolation-check # identity, writer/Port failures, healthy siblings
 make elixir-test     # formatting and classification unit test
 make elixir-check    # nine pairs including two deliberate anomalies
 make ls-check        # three unmodified ls pairs, fixed fixture, no input
+make echo-check      # three PTY/PTY echo pairs with kernel configuration readback
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across

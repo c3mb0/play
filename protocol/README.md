@@ -89,3 +89,18 @@ the tested Mac, not a general process sandbox.
 References: Erlang [Port ownership](https://www.erlang.org/doc/system/c_port.html),
 [open_port options](https://www.erlang.org/doc/apps/erts/erlang.html#open_port/2),
 and [native JSON](https://www.erlang.org/doc/apps/stdlib/json.html).
+
+## Setup-time terminal readback
+
+The framed helper now adds `terminal_observation` to `spawned`: null for pipes;
+for PTYs, an object with phase `slave_before_spawn`, native `echo_mask`, and
+`configuration` containing termios and dimensions. Rust obtains these with
+`tcgetattr` and `TIOCGWINSZ` on the slave after openpty, before child spawn. Readback
+failure fails setup through the existing OS error path. No process is spawned
+when that readback fails. This is an additive protocol-v1 field; earlier receipts
+may lack it. The helper binary fingerprint distinguishes implementations.
+
+The configuration flag words remain authoritative; boolean fields are decoded
+summaries. The echo experiment changes both c_lflag and its echo summary, then
+requires observed configuration equality. The readback does not monitor later
+subject-initiated terminal changes or establish cleanup success.

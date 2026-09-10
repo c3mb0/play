@@ -1,0 +1,12 @@
+=SUPERVISOR REPORT==== 11-Sep-2026::00:11:55.899513 ===
+    supervisor: {local,session_sup}
+    errorContext: child_terminated
+    reason: killed
+    offender: [{pid,<0.102.0>},
+               {id,#Ref<0.3462081953.2480406530.6553>},
+               {mfargs,{session_worker,start_link,undefined}},
+               {restart_type,temporary},
+               {significant,false},
+               {shutdown,2000},
+               {child_type,worker}]
+

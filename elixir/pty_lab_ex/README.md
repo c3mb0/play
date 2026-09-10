@@ -65,3 +65,19 @@ for the outer fixture, subject fingerprint, scheduling and process-absence check
 Those checks are acceptance-runner responsibilities, not claims made by calling
 the Elixir function alone. The installed macOS ls witness now joins the
 constructed hello-world witness; other platforms remain untested.
+
+## PTY echo witness
+
+`PtyLab.Experiment.run_echo_pairs/1` uses the same options with conditions echo_on
+then echo_off. Both attach the existing hello_witness through a PTY slave. The
+macOS-only experiment clears just ECHO (0x8) and its redundant configuration
+boolean for the second cell; ICANON and all other terminal settings stay fixed.
+Input/timing matches run_hello_pairs. Rust's pre-spawn slave readback must match
+both requested configurations, including its native ECHO mask. Calling this API
+on another OS is explicitly rejected rather than assuming portable flag numbers.
+
+`make echo-check` adds external receipt/subject-hash, ordering/concurrency and
+bounded PID checks. It preserves exact PTY bytes and the two predeclared echo-on
+prompt orders. The inherited pipe_output predicate name means the control output
+for this PTY/PTY experiment; cell condition and actual attachment are recorded
+separately. No canonical/raw, resize, EOF or signal matrix has been implemented.

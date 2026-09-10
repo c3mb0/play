@@ -1,0 +1,428 @@
+{
+  "start": "2026-09-10T21:11:56.580394+00:00",
+  "retries": 0,
+  "deadline_seconds": 60,
+  "cases": [
+    {
+      "name": "normal",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "complete",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "verified",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "completed",
+        "total_bytes": 8844,
+        "trailing_bytes": 0,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "detached",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "complete",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "verified",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "completed",
+        "total_bytes": 8844,
+        "trailing_bytes": 0,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "interrupted",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "interrupt",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "interrupt"
+        },
+        "classification": "incomplete",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074717477197083,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074717488153458,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 4332,
+        "trailing_bytes": 0,
+        "valid_events": 6,
+        "valid_prefix_bytes": 4332,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "empty",
+      "outcome": "pass",
+      "analysis": {
+        "identity": null,
+        "classification": "incomplete",
+        "metadata_complete": false,
+        "start_unix_ns": null,
+        "integrity": "absent",
+        "last_observed_unix_ns": null,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 0,
+        "trailing_bytes": 0,
+        "valid_events": 0,
+        "valid_prefix_bytes": 0,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "torn-tail",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "interrupt",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "interrupt"
+        },
+        "classification": "incomplete",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074717477197083,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074717488153458,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 4339,
+        "trailing_bytes": 7,
+        "valid_events": 6,
+        "valid_prefix_bytes": 4332,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "unsealed-complete",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "complete",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "completed",
+        "total_bytes": 8844,
+        "trailing_bytes": 0,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "invalid-middle",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074716837282792,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 8852,
+        "trailing_bytes": 6560,
+        "valid_events": 1,
+        "valid_prefix_bytes": 2292,
+        "validation_error": {
+          "offset": 2292,
+          "reason": "{error,{invalid_byte,105}}"
+        }
+      }
+    },
+    {
+      "name": "sequence-gap",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074716837282792,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 8865,
+        "trailing_bytes": 6573,
+        "valid_events": 1,
+        "valid_prefix_bytes": 2292,
+        "validation_error": {
+          "offset": 2292,
+          "reason": "{error,{badmatch,#{<<\"data\">> => #{<<\"helper_pid\">> => 57830},\n                   <<\"event\">> => <<\"port_open\">>,\n                   <<\"identity\">> =>\n                       #{<<\"cell\">> => <<\"normal\">>,\n                         <<\"experiment\">> => <<\"receipt_001\">>,\n                         <<\"run\">> => <<\"receipt-20260910T211156Z\">>,\n                         <<\"session\">> => <<\"normal\">>},\n                   <<\"monotonic_ns\">> => -576460751831696000,<<\"seq\">> => 3,\n                   <<\"unix_ns\">> => 1789074716839306709,<<\"v\">> => 1}}}"
+        }
+      }
+    },
+    {
+      "name": "identity-change",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074716837282792,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 8864,
+        "trailing_bytes": 6572,
+        "valid_events": 1,
+        "valid_prefix_bytes": 2292,
+        "validation_error": {
+          "offset": 2292,
+          "reason": "{error,{badmatch,#{<<\"cell\">> => <<\"normal\">>,\n                   <<\"experiment\">> => <<\"receipt_001\">>,\n                   <<\"run\">> => <<\"receipt-20260910T211156Z\">>,\n                   <<\"session\">> => <<\"normal\">>}}}"
+        }
+      }
+    },
+    {
+      "name": "after-terminal",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "absent",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "unknown",
+        "total_bytes": 8851,
+        "trailing_bytes": 7,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": {
+          "offset": 8844,
+          "reason": "data after terminal event"
+        }
+      }
+    },
+    {
+      "name": "environment-mismatch",
+      "outcome": "pass",
+      "analysis": {
+        "identity": null,
+        "classification": "quarantined",
+        "metadata_complete": false,
+        "start_unix_ns": null,
+        "integrity": "absent",
+        "last_observed_unix_ns": null,
+        "observed_terminal": null,
+        "outcome": "unknown",
+        "total_bytes": 8956,
+        "trailing_bytes": 8956,
+        "valid_events": 0,
+        "valid_prefix_bytes": 0,
+        "validation_error": {
+          "offset": 0,
+          "reason": "{error,{badmatch,<<\"0000000000000000000000000000000000000000000000000000000000000000\">>}}"
+        }
+      }
+    },
+    {
+      "name": "wrong-seal",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "mismatch",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "unknown",
+        "total_bytes": 8844,
+        "trailing_bytes": 0,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "malformed-seal",
+      "outcome": "pass",
+      "analysis": {
+        "identity": {
+          "cell": "normal",
+          "experiment": "receipt_001",
+          "run": "receipt-20260910T211156Z",
+          "session": "normal"
+        },
+        "classification": "quarantined",
+        "metadata_complete": true,
+        "start_unix_ns": 1789074716837282792,
+        "integrity": "malformed",
+        "last_observed_unix_ns": 1789074716863340959,
+        "observed_terminal": {
+          "details": {
+            "child_exit": {
+              "code": 0,
+              "signal": null
+            },
+            "helper_exit_code": 0,
+            "reported_pids": [
+              57830,
+              57831,
+              57832
+            ]
+          },
+          "outcome": "completed"
+        },
+        "outcome": "unknown",
+        "total_bytes": 8844,
+        "trailing_bytes": 0,
+        "valid_events": 10,
+        "valid_prefix_bytes": 8844,
+        "validation_error": null
+      }
+    },
+    {
+      "name": "destination-reuse",
+      "outcome": "pass",
+      "operation": "rejected without mutation"
+    }
+  ],
+  "source_commit": "caaa30741ebf2795a4ffbc49dfaff1f8d166d2cd",
+  "fault": {
+    "kind": "BEAM_SIGKILL",
+    "beam_pid": 57872,
+    "pids": [
+      57892,
+      57893,
+      57894
+    ],
+    "unix_ns": 1789074717502260000,
+    "beam_returncode": -9,
+    "all_pids_absent": true
+  },
+  "outcome": "pass",
+  "end": "2026-09-10T21:11:59.944924+00:00"
+}

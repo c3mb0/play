@@ -1,6 +1,31 @@
 # Checkpoint handoff
 
-## Current: unmodified ls witness, 2026-09-11 local / 2026-09-10 UTC
+## Current: ECHO axis, 2026-09-11 local / 2026-09-10 UTC
+
+Three PTY-slave pairs through run_echo_pairs/1 passed. Same hello_witness and
+hello\n input; only ECHO (macOS 0x8) changed. Rust now reads slave termios/dimensions
+before child spawn and includes terminal_observation in spawned. Applied settings
+matched requested settings exactly; lflag 536872395 versus 536872387. Echo off
+preserved the application prompt/reply and removed terminal input echo.
+
+Plan 79e4855; runtime source caaa307; evidence echo-20260910T211145Z. One run,
+zero retries, six verified sealed receipts, all eighteen reported PIDs absent,
+2.012 seconds. Echo-on pairs 1/2 emitted echo before prompt, pair 3 prompt before
+echo; both orders were predeclared and preserved. No schedule normalization.
+
+Four Elixir tests, seven EUnit tests, xref, Clippy, formatting/compilation and
+Python syntax passed. Updated-helper runtime regressions: elixir-20260910T211147Z,
+ls-20260910T211152Z, ownership-20260910T211154Z, receipt-20260910T211156Z all passed.
+See experiments/echo_001/RESULT.md; reproduce with make echo-check.
+
+Next bounded candidate: ICANON on/off with a byte-reading witness, fixed echo off
+and explicit input timing. The current read_line hello witness would conceal the
+kernel delivery distinction behind application line buffering. Predeclare the
+next axis first; no canonical/raw implementation or experiment has been started.
+Setup readback is not continuous monitoring. Prior guardian/descendant/platform
+limits persist. No factorial matrix, UI or generalized DSL has been added.
+
+## Historical: unmodified ls witness, 2026-09-11 local / 2026-09-10 UTC
 
 Completed three matched /bin/ls pipe/PTY pairs through shared Elixir scheduling.
 Prediction was predeclared in 3e96d8f; initial runner source 88c5d43. First attempt

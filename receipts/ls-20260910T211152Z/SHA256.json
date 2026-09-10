@@ -1,0 +1,22 @@
+{
+  "fixture-after.json": "100ca09dfea72958010de1f6e3a5c1f559ec2e151196e1e6d2996dc4cbd3c723",
+  "fixture-before.json": "100ca09dfea72958010de1f6e3a5c1f559ec2e151196e1e6d2996dc4cbd3c723",
+  "installed-manual-excerpt.txt": "2955ae9f6779581e82aad30d1c1c3d9281c688129aad0c453d99f6494e13b161",
+  "manifest.json": "21e60553744af501868dc4e51c1c64b5efc16a2a2d754a1c630b76abbe47ec7b",
+  "mix.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "mix.stdout": "522be26fe3f53ecd8244545c0b08a00db4b11104e8631d771749a679c3a8be77",
+  "pairs/pair-1-pipe.jsonl": "9ed4de0f24333075146f2fed89aa33c6b6a934bbe3fca05e00aaaa3fada10d00",
+  "pairs/pair-1-pipe.jsonl.sha256": "6c126949348a955020fc2b2d0dc4097e26f8c59bd78fe367bd4fabaa02b559e9",
+  "pairs/pair-1-slave.jsonl": "1d23c9879dc9b3da9db1ede02c6dfa94fb8d10f5f858aa15c757c28307e5518e",
+  "pairs/pair-1-slave.jsonl.sha256": "fc21f4c8daf8e18732d3c2ea8644ddb9b5f4db1869707c4786bae08c56cb0e6c",
+  "pairs/pair-2-pipe.jsonl": "44888e9ea83f0e7a28c385ff9b6749731912dac6c928cf3d62c2664fcb3e589d",
+  "pairs/pair-2-pipe.jsonl.sha256": "bc1948f513b9cc38a7d931ffcb3eff627a60628001a7cc82ec4d0bee8d13e08a",
+  "pairs/pair-2-slave.jsonl": "0415dac64e0f56355ec85499105a9ac7b3c08326b6ddc93bf65f65ef205fe143",
+  "pairs/pair-2-slave.jsonl.sha256": "b1f2fc8a8473137520ce2f013eae83d0357ee7c918432662aba08ba714cd91de",
+  "pairs/pair-3-pipe.jsonl": "2deac83490f4e29b2d114bd846ed9fefbce3a7c0624753ac74a1c8804ad876eb",
+  "pairs/pair-3-pipe.jsonl.sha256": "a0a941d9cc52de5edf1c5e59137b368db09d376ceac00479af68df02dbcfd03a",
+  "pairs/pair-3-slave.jsonl": "c6589644aba056fc01183ad82a61082f45dc43d6933eccf1669095e6d38f8bbf",
+  "pairs/pair-3-slave.jsonl.sha256": "16867eec8e061af3ca0ea902ccf4f9fd441c69235319cae02aafd8bc4197e040",
+  "pairs/report.json": "1072065b2a45d6351a300dafe7d142bb0296600a59504de044872311bb15dad8",
+  "pairs/report.json.sha256": "352ec393720b1e65b7db80f5dc6902c909022c32e97c9dc98b7fe4d2871713a7"
+}
