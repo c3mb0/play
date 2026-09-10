@@ -3,7 +3,15 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
-**Phase D receipt checkpoint: observed PASS on macOS 26.6.1 arm64.**
+**First behavioral witness: observed PASS on macOS 26.6.1 arm64.**
+The same hello-world program received `hello\n` through a pipe and a PTY. Both
+replied `received: hello` and exited 0; only the PTY run enabled `input> `.
+Original echo/CRLF bytes remain in the receipts. This is one intentionally
+constructed pair, not a claim about unmodified applications.
+[Results](experiments/witness_001/RESULT.md) ·
+[Raw comparison](receipts/witness-20260910T203307Z/comparison.json).
+
+The earlier Phase D receipt checkpoint passed:
 Standalone session receipts now include binary fingerprints, helper/runtime
 versions and a language-neutral environment hash. A real BEAM SIGKILL left a
 partial journal that a fresh BEAM recovered byte-for-byte as incomplete/unknown.
@@ -15,7 +23,7 @@ Nine OTP sessions covered topology, binary input, helper murder under pipes and
 PTY, worker kill, timeout, and successful execution after faults in the same
 BEAM. All reported processes in the fault cells were absent within three seconds.
 The SIGHUP-ignoring lifetime probe makes cleanup independent of terminal hangup.
-No Elixir, NIF, UI, behavioral witness or terminal state matrix exists yet.
+No Elixir, NIF, UI or terminal state matrix exists yet.
 
 The earlier Phase A/B gate reproduced the real macOS Terminal reference on the
 terminal dimensions declared before measurement:
@@ -47,6 +55,7 @@ projection cannot distinguish the controlling-PTY cell from the reference.
 * [Preserved failed first ownership run](receipts/ownership-20260910T195717Z/manifest.json)
 * [Receipt checkpoint](experiments/receipt_001/RESULT.md)
 * [Phase D evidence](receipts/receipt-20260910T202559Z/manifest.json)
+* [First behavioral witness](experiments/witness_001/RESULT.md)
 
 The first ownership run failed because Rust buffered non-newline protocol
 events. Direct descriptor writes fixed the transport; a new, separately recorded
@@ -83,6 +92,7 @@ make otp-check       # compile, EUnit, cross-reference analysis
 make protocol-check # real fragmented/coalesced/rejected frames; new evidence
 make ownership-check # nine bounded sessions; new evidence, no retries
 make receipt-check   # standalone metadata, BEAM kill, lossless recovery
+make witness-check   # hello-world prompt flip, one matched pair
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across

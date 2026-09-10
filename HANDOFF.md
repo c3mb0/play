@@ -1,6 +1,33 @@
 # Checkpoint handoff
 
-## Current: Phase D, 2026-09-10
+## Current: constructed behavioral witness, 2026-09-10
+
+Completed the user's hello-world ping-pong witness. A tiny Rust program enables
+`input> ` if stdin is terminal-attached, reads one line, and replies `received: `
+plus that line. Erlang runs one matched pipe/PTY-slave pair using identical task
+definition, fresh-session setup, frozen terminal settings and input timing policy.
+
+Observed PASS: `receipts/witness-20260910T203307Z`. Pipe raw output was
+`received: hello\n`; PTY raw output was `input> hello\r\nreceived: hello\r\n`.
+Actual input was `hello\n` in both; child exits were 0 without signals. All six
+reported OS PIDs were gone after the run. Journals were complete/verified v2.
+
+Plan `de83650`; runtime source `c270bb8`. One pair, zero retries, about 1.44 s total.
+Input-request delays were 101.414/101.791 ms for a shared 100 ms policy; exact
+scheduling is not claimed equal. No EOF command, prompt-dependent input policy,
+terminal mode changes, source normalization or controlling terminal was used.
+Build, Clippy, syntax, EUnit and xref passed. Helper/writer/recovery code unchanged.
+
+Origin remains `git@github.com:c3mb0/play.git`; user authorization to push persists.
+Checkout remains `/Users/cem/play/pty-lab`. Results and bounded reproduction are
+in experiments/witness_001 and `make witness-check`.
+
+Next candidate: select one unmodified application's documented terminal-sensitive
+behavior and predeclare another matched pair. This checkpoint validates a witness
+we intentionally constructed; it says nothing yet about arbitrary programs or
+repeatability. Do not expand the terminal-variable matrix automatically.
+
+## Historical Phase D handoff
 
 Completed standalone v2 receipt headers and explicit non-destructive recovery.
 Helper 0.3.0 adds `--metadata`; machine/session mechanism is otherwise unchanged.

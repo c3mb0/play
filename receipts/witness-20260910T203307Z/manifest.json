@@ -1,0 +1,25 @@
+{
+  "start": "2026-09-10T20:33:07.775391+00:00",
+  "kind": "constructed-behavioral-witness",
+  "pairs": 1,
+  "retries": 0,
+  "source_commit": "c270bb80356ee46f8b9e166ba6694155bafaa765",
+  "source_diff": "",
+  "witness_sha256": "2b507457148c69b0f4d7eee258f7f8a1afce95a8a8550f4c654b17c820fb5a06",
+  "outer_timeout_seconds": 30,
+  "beam_exit_code": 0,
+  "outcome": "pass",
+  "all_reported_pids_absent": [
+    46632,
+    46633,
+    46634,
+    46637,
+    46638,
+    46639
+  ],
+  "input_request_delay_ns": {
+    "pipe": 101413833,
+    "slave": 101790667
+  },
+  "end": "2026-09-10T20:33:09.213558+00:00"
+}
