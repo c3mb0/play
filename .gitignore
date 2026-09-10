@@ -3,3 +3,5 @@
 __pycache__/
 /erlang/pty_lab/_build/
 erl_crash.dump
+/elixir/pty_lab_ex/_build/
+/elixir/pty_lab_ex/deps/
