@@ -1,5 +1,47 @@
 # Checkpoint handoff
 
+## Current: Phase C, 2026-09-10
+
+Implemented OTP supervision/session workers, external Port framing v1, a Rust
+relay/guardian ownership chain, byte input and pipe EOF, bounded OTP deadlines,
+and an independent durable journal writer. Helper version is 0.2.0. Phase A/B
+reference files remain unchanged and the probe binary hash still matches them.
+
+Observed PASS: `receipts/ownership-20260910T195848Z`, nine sessions, in one BEAM.
+Helper SIGKILL under pipes and ctty, worker kill, and timeout all reclaimed their
+reported relay/guardian/subject PIDs within three seconds. The lifetime probe
+ignores SIGHUP. A fresh post-failure session completed; supervisors survived.
+Five actual framing cases passed in `receipts/protocol-20260910T195847Z`.
+
+Preserved failure: `receipts/ownership-20260910T195717Z`. Buffered Rust stdout
+delayed framed events until timeout. Corrected with raw descriptor writes before
+the new passing run. Its unfinished binary-input journal is evidence of the test
+BEAM's early halt, not a completed session receipt. No automatic retries exist.
+
+Runtime source: `675f107`; initial implementation: `e2833a9`. Further handoff/test
+changes do not alter the passing Rust/OTP runtime. EUnit validates decoder
+version/identity/sequence boundaries; Clippy and compiler warnings are errors.
+Xref exempts only five named externally invoked API/supervisor entrypoints.
+
+Installed via Homebrew: Erlang 29.0.6 and rebar3 3.27.0, plus unixodbc and wxwidgets.
+Homebrew also upgraded their dependencies ca-certificates, openssl@3, libtool,
+jpeg-turbo, libtiff and pcre2. No shell configuration was edited.
+
+Scope limits: guardian SIGKILL, descendant trees, full-BEAM/journal-writer crash
+recovery, Linux runtime, PTY EOF semantics and the terminal-variable matrix are
+not tested. Normal covered worker/helper failures yield sealed journals; abrupt
+BEAM death can leave partial ones. Run summaries bind source/binary hashes and
+platform; standalone session journals currently rely on that enclosing custody.
+
+Next bounded work: strengthen/review the Phase D receipt contract (self-contained
+metadata and partial-journal recovery) before the Phase E/F behavioral witness.
+Do not add terminal state axes yet. Current evidence is ready for user review.
+
+## Historical Phase A/B handoff
+
+The following records the previous checkpoint; its "next" and "known limits"
+paragraphs describe that earlier state, not the current Port path.
+
 Completed locally, 2026-09-10: requested immediate laptop task, Phases A/B.
 Repository: `/Users/cem/play/pty-lab`. No upstream remote configured.
 

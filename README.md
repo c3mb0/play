@@ -1,12 +1,17 @@
 # PTY Playground
 
 A small Unix process laboratory: terminal attachment topology is an explicit
-experimental variable. Rust touches the machine; Erlang will own lifecycle.
+experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
-**Phase A/B laptop checkpoint: observed PASS on macOS 26.6.1 arm64.**
-The Rust helper reproduced the real macOS Terminal reference on the terminal
-dimensions we declared before measuring. This is the first gate, not the full
-OTP acceptance test. No Erlang, Elixir, NIF, UI or behavioral witness exists yet.
+**Phase C ownership checkpoint: observed PASS on macOS 26.6.1 arm64.**
+Nine OTP sessions covered topology, binary input, helper murder under pipes and
+PTY, worker kill, timeout, and successful execution after faults in the same
+BEAM. All reported processes in the fault cells were absent within three seconds.
+The SIGHUP-ignoring lifetime probe makes cleanup independent of terminal hangup.
+No Elixir, NIF, UI, behavioral witness or terminal state matrix exists yet.
+
+The earlier Phase A/B gate reproduced the real macOS Terminal reference on the
+terminal dimensions declared before measurement:
 
 | Measured property | Pipes | PTY slave only | PTY + controlling terminal | Real Terminal |
 | --- | --- | --- | --- | --- |
@@ -29,6 +34,46 @@ projection cannot distinguish the controlling-PTY cell from the reference.
 * [Gate receipt](receipts/gate-20260910T194539Z/manifest.json)
 * [Explicit comparison](receipts/gate-20260910T194539Z/comparison.json)
 * [Handoff and limits](HANDOFF.md)
+* [Ownership gate plan](experiments/ownership_001/PLAN.md)
+* [Passing ownership receipt](receipts/ownership-20260910T195848Z/manifest.json)
+* [Framing evidence](receipts/protocol-20260910T195847Z/manifest.json)
+* [Preserved failed first ownership run](receipts/ownership-20260910T195717Z/manifest.json)
+
+The first ownership run failed because Rust buffered non-newline protocol
+events. Direct descriptor writes fixed the transport; a new, separately recorded
+run passed. The failed binary-input journal is incomplete because the test BEAM
+halted on the assertion; it is preserved, never synthesized into a complete run.
+
+## OTP ownership
+
+```text
+pty_lab_sup
+├── receipt_writer (independent worker monitor and durable journal owner)
+└── session_sup
+    └── session_worker (temporary, never replayed)
+        └── external Port: Rust relay
+            └── Rust guardian
+                └── subject
+```
+
+The extra Rust process closes the macOS SIGKILL cleanup gap: the guardian owns
+the subject and observes EOF when its relay dies. OTP deadlines send termination;
+worker death closes the Port. The guardian kills/reaps the direct child. Killing
+the guardian itself and descendant containment remain outside the guarantee.
+
+Session journals are synchronously appended, sealed on completion/failure, and
+monitored independently of workers. Original wire events, input/output hex,
+command ordering, exit signals and timeout/failure outcomes remain inspectable.
+The [protocol contract](protocol/README.md) explains bounds and error semantics.
+
+Requires OTP 27+ for native JSON (tested with OTP 29.0.6), and rebar3 (3.27.0).
+On this laptop add `/opt/homebrew/bin` alongside the Rust toolchain to PATH:
+
+```sh
+make otp-check       # compile, EUnit, cross-reference analysis
+make protocol-check # real fragmented/coalesced/rejected frames; new evidence
+make ownership-check # nine bounded sessions; new evidence, no retries
+```
 
 The probe, argv, explicit environment, cwd and empty input are identical across
 the topology cells. A side-channel snapshot preserves stdio attachment. Raw pipe
@@ -75,7 +120,7 @@ equivalence, exact ENOENT on exec failure, deadline termination and reaping of a
 sleeping child, and child exit-code propagation. They compare observed behavior,
 not implementation text. There are no Rust unit tests at this checkpoint.
 
-## Mechanism boundary
+## Legacy Phase B CLI
 
 ```text
 pty_helper CONFIG_JSON slave|ctty DEADLINE_MS -- EXECUTABLE [ARGS...]
@@ -94,10 +139,10 @@ I/O-loop deadline and allows at most one second for kill/reap cleanup. Exit 125
 means helper failure; child exit details distinguish it from a subject exiting
 125. No stdin forwarding or terminal state matrix is implemented.
 
-This is **not** the future framed/versioned Port protocol. Full event identity,
-per-chunk timing, signal observations, interactive writes, crash-safe ownership
-and descendant cleanup remain deferred. Killing the helper can bypass its Rust
-destructors; no helper-murder survival claim is made.
+This legacy CLI remains for gate_001 regression and has no crash-containment
+promise. OTP uses `pty_helper --port` and the framed protocol instead. Only that
+new path has the tested guardian ownership chain. Descendant cleanup remains
+deferred in both paths.
 
 The post-fork hook uses only session/terminal syscalls and immediate errno
 capture, following Rust's [pre_exec safety requirements](https://doc.rust-lang.org/std/os/unix/process/trait.CommandExt.html#tymethod.pre_exec).

@@ -1,0 +1,13 @@
+{
+  "bad-json.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "bad-json.wire": "7fc9bc8270a7fd02c93f1a9e75df3c0d04c7ee4ebb05a92ceb7b90dfe2821176",
+  "bad-version.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "bad-version.wire": "4414037c138873c0b0c4bf7a63baa61c169184bd133581431a42d45cf7688440",
+  "fragmented-and-coalesced.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "fragmented-and-coalesced.wire": "20ddf3438845e88c9aba593cd400ba373d57edf7bc65aedfe72ac1e81839113c",
+  "manifest.json": "4abad94a990e56ef8599c76cd7c871bb5c865a136ff857b4e349deaa731f7fbf",
+  "oversized.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "oversized.wire": "fe76346f50f8a3a0aa6260d973f6f1be9f07460e47fd5cb42c5b81f000ee4240",
+  "zero-length.stderr": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+  "zero-length.wire": "24fa25ca48c9798cea4093bdc07f316abad1c785a6e41a62e63590298ae12492"
+}

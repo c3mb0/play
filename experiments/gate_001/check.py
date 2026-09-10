@@ -47,7 +47,7 @@ def main():
                    reference_manifest_sha256=digest(reference / "manifest.json"),
                    argv=ARGV, environment=ENV, environment_sha256=manifest["environment_sha256"],
                    cwd=str(ROOT), executable_sha256=digest(Path(ARGV[0])),
-                   helper_sha256=digest(helper), helper_version="0.1.0", protocol_version=None,
+                   helper_sha256=digest(helper), helper_version=None, protocol_version=None,
                    source_commit=subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=ROOT).decode().strip(),
                    input_hex="", retries=0, cells=[])
 
@@ -73,6 +73,9 @@ def main():
         # A PID is checked immediately, with reuse treated as a failure, never ignored.
         for event in events:
             if event["event"] == "spawned":
+                version = event["helper_version"]
+                assert receipt["helper_version"] in (None, version)
+                receipt["helper_version"] = version
                 try:
                     os.kill(event["pid"], 0)
                 except ProcessLookupError:

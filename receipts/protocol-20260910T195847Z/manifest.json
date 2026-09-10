@@ -1,0 +1,117 @@
+{
+  "start": "2026-09-10T19:58:47.862215+00:00",
+  "helper_sha256": "487a60fec90ab35c3cedf5f4b5020e76e7a5dcfe51cae0d60576a0a289baf9f8",
+  "cases": [
+    {
+      "name": "fragmented-and-coalesced",
+      "outcome": "pass",
+      "events": [
+        {
+          "data": {
+            "spawned": false
+          },
+          "event": "status",
+          "identity": {
+            "cell": "framing",
+            "experiment": "protocol-check",
+            "session": "framing"
+          },
+          "monotonic_ns": 196000,
+          "seq": 1,
+          "unix_ns": 1789070328291802000,
+          "v": 1
+        },
+        {
+          "data": {
+            "spawned": false
+          },
+          "event": "status",
+          "identity": {
+            "cell": "framing",
+            "experiment": "protocol-check",
+            "session": "framing"
+          },
+          "monotonic_ns": 272500,
+          "seq": 2,
+          "unix_ns": 1789070328291879000,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "name": "bad-version",
+      "outcome": "pass",
+      "events": [
+        {
+          "data": {
+            "errno": null,
+            "message": "unsupported protocol version"
+          },
+          "event": "error",
+          "identity": null,
+          "monotonic_ns": 39916,
+          "seq": 1,
+          "unix_ns": 1789070328311532000,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "name": "oversized",
+      "outcome": "pass",
+      "events": [
+        {
+          "data": {
+            "errno": null,
+            "message": "frame length outside 1..1048576"
+          },
+          "event": "error",
+          "identity": null,
+          "monotonic_ns": 19042,
+          "seq": 1,
+          "unix_ns": 1789070328320708000,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "name": "zero-length",
+      "outcome": "pass",
+      "events": [
+        {
+          "data": {
+            "errno": null,
+            "message": "frame length outside 1..1048576"
+          },
+          "event": "error",
+          "identity": null,
+          "monotonic_ns": 22791,
+          "seq": 1,
+          "unix_ns": 1789070328333463000,
+          "v": 1
+        }
+      ]
+    },
+    {
+      "name": "bad-json",
+      "outcome": "pass",
+      "events": [
+        {
+          "data": {
+            "errno": null,
+            "message": "EOF while parsing an object at line 1 column 1"
+          },
+          "event": "error",
+          "identity": null,
+          "monotonic_ns": 32042,
+          "seq": 1,
+          "unix_ns": 1789070328346759000,
+          "v": 1
+        }
+      ]
+    }
+  ],
+  "retries": 0,
+  "outcome": "pass",
+  "end": "2026-09-10T19:58:48.351646+00:00"
+}
