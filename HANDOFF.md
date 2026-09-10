@@ -1,6 +1,31 @@
 # Checkpoint handoff
 
-## Current: ECHO axis, 2026-09-11 local / 2026-09-10 UTC
+## Current: ICANON delivery axis, 2026-09-11 local / 2026-09-10 UTC
+
+Three canonical-on/off PTY pairs passed with echo off in both. New byte_witness
+uses poll plus one-byte libc::read, with a fixed 400 ms early window and bounded
+final reads. Same h-newline input: send h after READY; wait for WINDOW result;
+then send newline in both conditions. Canonical reported WINDOW NONE, noncanonical
+WINDOW 68; both reported FINAL 680a and exited zero. Native readback confirms
+only ICANON (256) changed; ECHO off, VMIN=1 and VTIME=0 remained fixed.
+
+Plan f1db193; runtime source 14c45ea; receipts canonical-20260910T211835Z. One run,
+zero retries, six sealed verified receipts, eighteen reported PIDs absent, 3.380 s.
+Journal phase ordering and max concurrency two verified. Controller-side ack-to-
+WINDOW intervals 396.565–405.002 ms; not exact kernel/probe timing. No normalization.
+
+Five Elixir tests, formatting/compilation, Clippy/Python syntax passed. Regressions
+echo-20260910T211839Z, elixir-20260910T211840Z, ls-20260910T211845Z all passed.
+Erlang unchanged; helper only adds native mask/cc identifiers to setup readback.
+Cargo dependency versions unchanged. See experiments/canonical_001/RESULT.md and
+make canonical-check; public run_canonical_pairs/1 documented in the Elixir README.
+
+Next candidate: initial terminal width using unmodified ls. Predeclare widths,
+fixture and layout predicates first; do not silently add resize/SIGWINCH or a
+factorial matrix. No width experiment has been started. Existing setup-readback,
+guardian, descendant and platform limits persist.
+
+## Historical: ECHO axis, 2026-09-11 local / 2026-09-10 UTC
 
 Three PTY-slave pairs through run_echo_pairs/1 passed. Same hello_witness and
 hello\n input; only ECHO (macOS 0x8) changed. Rust now reads slave termios/dimensions

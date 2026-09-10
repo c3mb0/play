@@ -80,4 +80,26 @@ on another OS is explicitly rejected rather than assuming portable flag numbers.
 bounded PID checks. It preserves exact PTY bytes and the two predeclared echo-on
 prompt orders. The inherited pipe_output predicate name means the control output
 for this PTY/PTY experiment; cell condition and actual attachment are recorded
-separately. No canonical/raw, resize, EOF or signal matrix has been implemented.
+separately. No factorial, resize, EOF or signal matrix has been implemented.
+
+## Canonical input-delivery witness
+
+`PtyLab.Experiment.run_canonical_pairs/1` uses the same root, fresh directory,
+name, pairs and concurrency options. Both cells attach byte_witness to a PTY
+slave with echo off; conditions canonical_on then canonical_off change only the
+macOS ICANON bit and its summary. VMIN=1/VTIME=0 stay fixed and are checked against
+native readback, along with every other requested setting.
+
+The controller waits for READY, sends h and checks its acknowledgement, then
+waits for the probe's WINDOW line before sending newline. Each phase wait is
+bounded to one second and accumulated line output to 1024 bytes. The probe uses
+a fixed 400 ms early poll window and bounded final reads; it reports NONE or the
+hex byte 68. All other session/pair bounds remain unchanged. This API accepts
+only the declared h-newline input sequence; input overrides are not supported
+for this witness. There is no full raw-mode preset.
+
+`make canonical-check` verifies exact raw output and journal phase ordering as
+well as receipt custody, scheduling and PID absence. Comparison keys are
+control_output and treatment_output. A phase-input error is recorded in the
+session's input_request; missing/failed sessions retain execution_failure status.
+Timing is a shared phase policy, not a promise of identical OS scheduling.

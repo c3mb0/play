@@ -1,0 +1,5 @@
+===> Analyzing applications...
+===> Compiling pty_lab
+normal: pass, pass, pass
+mismatch: pass, mismatch, pass
+execution-failure: pass, execution_failure, pass

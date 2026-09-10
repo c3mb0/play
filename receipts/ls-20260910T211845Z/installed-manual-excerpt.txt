@@ -1,0 +1,4 @@
+     -C      Force multi-column output; this is the default when output is to
+	     a terminal.
+     -1      (The numeric digit “one”.) Force output to be one entry per line.
+	     This is the default when output is not to a terminal.

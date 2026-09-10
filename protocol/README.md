@@ -104,3 +104,8 @@ The configuration flag words remain authoritative; boolean fields are decoded
 summaries. The echo experiment changes both c_lflag and its echo summary, then
 requires observed configuration equality. The readback does not monitor later
 subject-initiated terminal changes or establish cleanup success.
+
+Canonical readback also reports native `canonical_mask`, `vmin_index` and
+`vtime_index`. These additive identifiers let the experiment verify its
+platform-specific flag/cc interpretation. They do not change terminal setup or
+add a raw-mode command. Older receipts may omit them.
