@@ -7,6 +7,14 @@ defmodule PtyLab.Experiment do
   @doc "Runs the predeclared installed ls layout witness with no input."
   def run_ls_pairs(options), do: run_pairs(options, :ls)
 
+  @doc "Runs the predeclared macOS PTY echo-on/echo-off witness."
+  def run_echo_pairs(options) do
+    unless :os.type() == {:unix, :darwin},
+      do: raise(ArgumentError, "macOS terminal fixture required")
+
+    run_pairs(options, :echo)
+  end
+
   defp run_pairs(options, witness) do
     root = Path.expand(Map.fetch!(options, :root))
     directory = Path.expand(Map.fetch!(options, :directory))
@@ -28,12 +36,12 @@ defmodule PtyLab.Experiment do
       witness: Atom.to_string(witness),
       pairs: pairs,
       max_concurrency: concurrency,
-      order: ["pipe", "slave"],
+      order: if(witness == :echo, do: ["echo_on", "echo_off"], else: ["pipe", "slave"]),
       continuation: "continue_remaining_pairs",
       session_deadline_ms: 5000,
-      input_delay_ms: if(witness == :hello, do: 100, else: 0),
-      input_anchor: if(witness == :hello, do: "received spawned", else: "no input"),
-      expected_input: if(witness == :hello, do: "hello\n", else: ""),
+      input_delay_ms: if(witness != :ls, do: 100, else: 0),
+      input_anchor: if(witness != :ls, do: "received spawned", else: "no input"),
+      expected_input: if(witness != :ls, do: "hello\n", else: ""),
       retries: 0,
       input_overrides: Map.get(options, :input_overrides, %{}),
       executable_overrides: Map.get(options, :executable_overrides, %{}),
@@ -41,13 +49,13 @@ defmodule PtyLab.Experiment do
       terminal_config_sha256: hash(config_bytes),
       spec: %{
         "executable" =>
-          if(witness == :hello,
+          if(witness != :ls,
             do: Path.join(root, "target/debug/hello_witness"),
             else: "/bin/ls"
           ),
         "argv" => [],
         "cwd" =>
-          if(witness == :hello, do: root, else: Path.join(root, "experiments/ls_001/fixture")),
+          if(witness != :ls, do: root, else: Path.join(root, "experiments/ls_001/fixture")),
         "environment" => %{"PATH" => "/usr/bin:/bin", "LANG" => "C", "TERM" => "xterm-256color"}
       }
     }
@@ -163,7 +171,7 @@ defmodule PtyLab.Experiment do
 
     options = %{
       identity: identity,
-      spec: Map.put(spec, "attachment", mode),
+      spec: cell_spec(spec, mode),
       helper: Path.join(definition.root, "target/debug/pty_helper") |> String.to_charlist(),
       receipt: String.to_charlist(receipt),
       deadline_ms: definition.session_deadline_ms
@@ -230,7 +238,8 @@ defmodule PtyLab.Experiment do
 
     %{
       identity: identity,
-      attachment: mode,
+      attachment: cell_spec(spec, mode)["attachment"],
+      condition: mode,
       receipt: receipt,
       session: result,
       requested_input_hex: Base.encode16(input),
@@ -259,7 +268,9 @@ defmodule PtyLab.Experiment do
         analysis: analysis,
         header: hd(events)["data"],
         streams_hex: streams,
-        child_exits: for(%{"event" => "child_exit", "data" => data} <- helper, do: data)
+        child_exits: for(%{"event" => "child_exit", "data" => data} <- helper, do: data),
+        terminal_observations:
+          for(%{"event" => "spawned", "data" => data} <- helper, do: data["terminal_observation"])
       }
     else
       {:error, reason} -> %{error: inspect(reason)}
@@ -287,8 +298,7 @@ defmodule PtyLab.Experiment do
       actual_pty = Base.decode16!(pty.observation.streams_hex["pty_output"])
 
       checks = %{
-        same_definition:
-          Map.delete(a["spec"], "attachment") == Map.delete(b["spec"], "attachment"),
+        same_definition: matched_specs?(a["spec"], b["spec"], witness),
         same_binary: a["executable"]["sha256"] == b["executable"]["sha256"],
         same_helper: a["helper"]["sha256"] == b["helper"]["sha256"],
         same_environment: a["environment_sha256"] == b["environment_sha256"],
@@ -301,10 +311,29 @@ defmodule PtyLab.Experiment do
           ),
         declared_input: pipe.requested_input_hex == Base.encode16(expected_input),
         pipe_output:
-          pipe_matches?(actual_pipe, expected_input, witness) and
+          control_matches?(pipe, actual_pipe, expected_input, witness) and
             pipe.observation.streams_hex["stderr"] == "",
         pty_output: pty_matches?(actual_pty, expected_input, witness)
       }
+
+      checks =
+        if witness == "echo" do
+          Map.put(
+            checks,
+            :observed_terminal_configuration,
+            Enum.all?(cells, fn c ->
+              case c.observation[:terminal_observations] do
+                [%{"phase" => "slave_before_spawn", "echo_mask" => 8, "configuration" => config}] ->
+                  config == c.observation.header["spec"]["terminal"]
+
+                _ ->
+                  false
+              end
+            end)
+          )
+        else
+          checks
+        end
 
       {if(Enum.all?(checks, fn {_, value} -> value end), do: "pass", else: "mismatch"), checks}
     else
@@ -312,8 +341,36 @@ defmodule PtyLab.Experiment do
     end
   end
 
+  defp cell_spec(spec, "echo_on"), do: Map.put(spec, "attachment", "slave")
+
+  defp cell_spec(spec, "echo_off") do
+    spec
+    |> Map.put("attachment", "slave")
+    |> put_in(["terminal", "termios", "echo"], false)
+    |> update_in(["terminal", "termios", "lflag"], &Bitwise.band(&1, Bitwise.bnot(8)))
+  end
+
+  defp cell_spec(spec, mode), do: Map.put(spec, "attachment", mode)
+
+  defp matched_specs?(on, off, "echo") do
+    on["attachment"] == "slave" and on["terminal"]["termios"]["echo"] == true and
+      Bitwise.band(on["terminal"]["termios"]["lflag"], 8) == 8 and
+      Bitwise.band(on["terminal"]["termios"]["lflag"], 16) == 0 and
+      off == cell_spec(on, "echo_off")
+  end
+
+  defp matched_specs?(a, b, _), do: Map.delete(a, "attachment") == Map.delete(b, "attachment")
+
+  defp control_matches?(cell, _, input, "echo"),
+    do: pty_matches?(Base.decode16!(cell.observation.streams_hex["pty_output"]), input, "hello")
+
+  defp control_matches?(_, bytes, input, witness), do: pipe_matches?(bytes, input, witness)
+
   defp pipe_matches?(bytes, _, "ls"), do: bytes == "alpha\nbravo\ncharlie\n"
   defp pipe_matches?(bytes, input, "hello"), do: bytes == "received: " <> input
+
+  defp pty_matches?(bytes, input, "echo"),
+    do: bytes == "input> received: " <> String.replace(input, "\n", "\r\n")
 
   defp pty_matches?(bytes, _, "ls"),
     do: Regex.match?(~r/\Aalpha[ \t]+bravo[ \t]+charlie\r\n\z/, bytes)

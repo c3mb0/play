@@ -22,6 +22,61 @@ defmodule PtyLab.ExperimentTest do
              PtyLab.Experiment.compare([pipe, changed], "", "ls")
   end
 
+  test "echo requires exactly its declared configuration change and kernel readback" do
+    cells = echo_cells()
+    assert {"pass", _} = PtyLab.Experiment.compare(cells, "hello\n", "echo")
+    [on, off] = cells
+    extra = put_in(off, [:observation, :header, "spec", "terminal", "dimensions", "cols"], 40)
+
+    assert {"mismatch", %{same_definition: false}} =
+             PtyLab.Experiment.compare([on, extra], "hello\n", "echo")
+
+    missing = put_in(off, [:observation, :terminal_observations], [])
+
+    assert {"mismatch", %{observed_terminal_configuration: false}} =
+             PtyLab.Experiment.compare([on, missing], "hello\n", "echo")
+
+    unchanged =
+      put_in(
+        off,
+        [:observation, :streams_hex, "pty_output"],
+        Base.encode16("input> hello\r\nreceived: hello\r\n")
+      )
+
+    assert {"mismatch", %{pty_output: false}} =
+             PtyLab.Experiment.compare([on, unchanged], "hello\n", "echo")
+  end
+
+  defp echo_cells do
+    Enum.zip(ls_cells(""), [true, false])
+    |> Enum.map(fn {cell, echo} ->
+      config = %{
+        "termios" => %{"echo" => echo, "lflag" => if(echo, do: 8, else: 0)},
+        "dimensions" => %{"cols" => 80}
+      }
+
+      cell
+      |> Map.put(:requested_input_hex, Base.encode16("hello\n"))
+      |> put_in([:observation, :header, "spec"], %{"attachment" => "slave", "terminal" => config})
+      |> put_in([:observation, :streams_hex, "input_written"], Base.encode16("hello\n"))
+      |> put_in(
+        [:observation, :streams_hex, "pty_output"],
+        Base.encode16(
+          if(echo,
+            do: "input> hello\r\nreceived: hello\r\n",
+            else: "input> received: hello\r\n"
+          )
+        )
+      )
+      |> update_in(
+        [:observation],
+        &Map.put(&1, :terminal_observations, [
+          %{"phase" => "slave_before_spawn", "echo_mask" => 8, "configuration" => config}
+        ])
+      )
+    end)
+  end
+
   defp ls_cells(output) do
     for mode <- ["pipe", "slave"] do
       %{

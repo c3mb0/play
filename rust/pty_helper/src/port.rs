@@ -136,6 +136,7 @@ pub fn relay() -> Result<i32> {
 }
 
 struct Subject {
+    terminal_observation: Value,
     child: super::ChildOwner,
     input: Option<File>,
     readers: Vec<(String, File)>,
@@ -148,6 +149,28 @@ struct Subject {
 fn file<T: std::os::fd::IntoRawFd>(fd: T) -> File {
     unsafe { File::from_raw_fd(fd.into_raw_fd()) }
 }
+// Observe the configured slave before handing it to the child. No experiment policy.
+fn terminal_observation(fd: i32) -> Result<Value> {
+    let mut t: libc::termios = unsafe { std::mem::zeroed() };
+    if unsafe { libc::tcgetattr(fd, &mut t) } < 0 {
+        return Err(io::Error::last_os_error().into());
+    }
+    let mut w: libc::winsize = unsafe { std::mem::zeroed() };
+    if unsafe { libc::ioctl(fd, libc::TIOCGWINSZ, &mut w) } < 0 {
+        return Err(io::Error::last_os_error().into());
+    }
+    Ok(json!({"phase":"slave_before_spawn", "echo_mask":libc::ECHO,
+        "configuration": {
+            "termios": {"iflag":t.c_iflag,"oflag":t.c_oflag,"cflag":t.c_cflag,
+                "lflag":t.c_lflag,"cc":t.c_cc.to_vec(),
+                "ispeed":unsafe {libc::cfgetispeed(&t)},
+                "ospeed":unsafe {libc::cfgetospeed(&t)},
+                "canonical":t.c_lflag & libc::ICANON != 0,
+                "echo":t.c_lflag & libc::ECHO != 0,"isig":t.c_lflag & libc::ISIG != 0},
+            "dimensions":{"rows":w.ws_row,"cols":w.ws_col,
+                "xpixel":w.ws_xpixel,"ypixel":w.ws_ypixel}}}))
+}
+
 fn spawn(spec: &Value) -> Result<Subject> {
     let mode = spec["attachment"].as_str().ok_or("missing attachment")?;
     if !["pipe", "slave", "ctty"].contains(&mode) {
@@ -171,6 +194,7 @@ fn spawn(spec: &Value) -> Result<Subject> {
         );
     }
     let mut master = None;
+    let mut observed_terminal = Value::Null;
     if mode == "pipe" {
         command
             .stdin(Stdio::piped())
@@ -214,6 +238,7 @@ fn spawn(spec: &Value) -> Result<Subject> {
                 return Err(io::Error::last_os_error().into());
             }
         }
+        observed_terminal = terminal_observation(s)?;
         command
             .stdin(Stdio::from(slave.try_clone()?))
             .stdout(Stdio::from(slave.try_clone()?))
@@ -264,6 +289,7 @@ fn spawn(spec: &Value) -> Result<Subject> {
         nonblock(fd.as_raw_fd())?;
     }
     Ok(Subject {
+        terminal_observation: observed_terminal,
         child,
         input,
         readers,
@@ -324,7 +350,8 @@ fn command(
                 "spawned",
                 json!({"pid":s.child.0.id(),"guardian_pid":std::process::id(),
                 "helper_pid":unsafe {libc::getppid()},"helper_version":env!("CARGO_PKG_VERSION"),
-                "attachment":value["spec"]["attachment"],"new_session":true}),
+                "attachment":value["spec"]["attachment"],"new_session":true,
+                "terminal_observation":s.terminal_observation}),
             )?;
         }
         "write" => {
