@@ -1,0 +1,41 @@
+{
+  "start": "2026-09-10T21:36:32.016252+00:00",
+  "retries": 0,
+  "outer_timeout_seconds": 60,
+  "source_commit": "6c21133faa2b418e28fc158dee514bd7f105dbf8",
+  "mix_exit_code": 0,
+  "outcome": "pass",
+  "cases": [
+    "input_wait",
+    "blocked_output",
+    "stopped",
+    "held_output",
+    "caller_death",
+    "worker_death_descendant"
+  ],
+  "sessions": 6,
+  "intervention_requests": 13,
+  "known_pids_absent": [
+    65524,
+    65525,
+    65526,
+    65532,
+    65533,
+    65534,
+    65546,
+    65547,
+    65548,
+    65558,
+    65559,
+    65560,
+    65561,
+    65578,
+    65579,
+    65580,
+    65592,
+    65593,
+    65594,
+    65595
+  ],
+  "end": "2026-09-10T21:36:36.866699+00:00"
+}

@@ -3,6 +3,12 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
+**Operator workshop: complete.**
+Six bounded exhibits explored waits, intervention receipts, caller/worker death
+and inherited output descriptors. All passed; the take-home result is an
+[evidence-backed operator wishlist](OPERATOR-WISHLIST.md), not a larger platform.
+[Exhibit results](experiments/operator_001/RESULT.md).
+
 **Initial terminal width: observed PASS.**
 Three PTY/PTY pairs of unmodified `/bin/ls` emitted one row at 80 columns and
 three lines at 8 columns. Only the column count changed; native readback,
@@ -123,18 +129,19 @@ The Elixir layer additionally requires Elixir 1.20 (tested with 1.20.4).
 On this laptop add `/opt/homebrew/bin` alongside the Rust toolchain to PATH:
 
 ```sh
-make otp-check       # compile, EUnit, cross-reference analysis
-make protocol-check # real fragmented/coalesced/rejected frames; new evidence
-make ownership-check # nine bounded sessions; new evidence, no retries
-make receipt-check   # standalone metadata, BEAM kill, lossless recovery
-make witness-check   # hello-world prompt flip, one matched pair
-make isolation-check # identity, writer/Port failures, healthy siblings
-make elixir-test     # formatting and classification unit test
-make elixir-check    # nine pairs including two deliberate anomalies
-make ls-check        # three unmodified ls pairs, fixed fixture, no input
-make echo-check      # three PTY/PTY echo pairs with kernel configuration readback
-make canonical-check # early byte delivery versus canonical line delivery
-make width-check     # initial 80/8-column PTY layouts with installed ls
+make otp-check        # compile, EUnit, cross-reference analysis
+make protocol-check   # real fragmented/coalesced/rejected frames; new evidence
+make ownership-check  # nine bounded sessions; new evidence, no retries
+make receipt-check    # standalone metadata, BEAM kill, lossless recovery
+make witness-check    # hello-world prompt flip, one matched pair
+make isolation-check  # identity, writer/Port failures, healthy siblings
+make elixir-test      # formatting and classification unit test
+make elixir-check     # nine pairs including two deliberate anomalies
+make ls-check         # three unmodified ls pairs, fixed fixture, no input
+make echo-check       # three PTY/PTY echo pairs with kernel configuration readback
+make canonical-check  # early byte delivery versus canonical line delivery
+make width-check      # initial 80/8-column PTY layouts with installed ls
+make operator-check   # bounded operator workshop and take-home evidence
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across

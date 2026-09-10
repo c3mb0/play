@@ -1,6 +1,33 @@
 # Checkpoint handoff
 
-## Current: initial-width axis, 2026-09-11 local / 2026-09-10 UTC
+## Current: operator workshop complete, 2026-09-11 local / 2026-09-10 UTC
+
+The user explicitly asked for a bounded future-operator wishlist round, not more
+lab machinery. Six exhibits passed: input wait, undrained stdout, stopped child,
+exited parent with held output, caller death, and worker death with a descendant.
+Plan 721fec1; source 6c21133; receipts operator-20260910T213632Z. One run, no retries,
+4.850 s, six sealed verified receipts, thirteen intervention requests and twenty
+known PIDs absent. Two intentional holders were explicitly cleaned up by the
+fixture coordinator; the independent watchdog required no emergency actions.
+
+Main findings: session silence does not identify wait reason; child_exit currently
+waits for output EOF; caller death leaves session/child alive until OTP deadline;
+worker death reclaims direct chain but does not contain descendants. Preserve
+these as observed boundaries, not fixed bugs or generalized diagnoses.
+
+OPERATOR-WISHLIST.md ranks five capabilities with receipts and smallest proposed
+interfaces. experiments/operator_001/RESULT.md describes evidence and limits.
+New code is confined to the cooperative MIT operator_subject and experiment
+scripts; no production helper or lifecycle mechanism changed. Six existing Elixir
+tests, Rust build/fmt/Clippy, Python syntax and Elixir script compile/format passed.
+README make-command comments were aligned after the user's screenshot correction.
+
+STOP HERE: the user called the citizen-lab harness done and authorized this one
+workshop. Wishlist items are proposals, not authorization to implement them.
+No further resize, containment, monitoring or approval platform work is started.
+Repo remains MIT; push authorization persists. Preserve all receipts.
+
+## Historical: initial-width axis, 2026-09-11 local / 2026-09-10 UTC
 
 Three PTY/PTY pairs of installed /bin/ls passed: initial columns 80 then 8, same
 fixture/argv/environment/cwd/empty input. Wide output alpha\tbravo\tcharlie\r\n;

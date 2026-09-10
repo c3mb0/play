@@ -1,0 +1,15 @@
+===> Analyzing applications...
+===> Compiling pty_lab
+
+00:36:36.516 [error]     supervisor: {local,session_sup}
+    errorContext: child_terminated
+    reason: killed
+    offender: [{pid,<0.149.0>},
+               {id,#Ref<0.849329176.4093902849.240656>},
+               {mfargs,{session_worker,start_link,undefined}},
+               {restart_type,temporary},
+               {significant,false},
+               {shutdown,2000},
+               {child_type,worker}]
+
+operator exhibits: 6 passed
