@@ -1,0 +1,46 @@
+{
+  "schema": 1,
+  "kind": "pre-harness-reference",
+  "start": "2026-09-10T19:41:06.657626+00:00",
+  "platform": "macOS-26.6.1-arm64-arm-64bit",
+  "argv": [
+    "/Users/cem/play/pty-lab/target/debug/topology_probe",
+    "--snapshot",
+    "/Users/cem/play/pty-lab/experiments/gate_001/scratch/observation.json"
+  ],
+  "cwd": "/Users/cem/play/pty-lab",
+  "environment": {
+    "PATH": "/usr/bin:/bin",
+    "LANG": "C",
+    "TERM": "xterm-256color"
+  },
+  "environment_sha256": "38c4cc106081b92684c2333c8f5f3fe17b09ffb50c28a08baddce4ce56cb5fda",
+  "executable_sha256": "34816412b0e6339f1bd1dda46e07eaeea0fa262244f1e51d1732279abe1c9283",
+  "source_commit": "f30c10da266bd36960fc302444e3ee965b242ebc",
+  "input_hex": "",
+  "timeout_seconds": 10,
+  "retries": 0,
+  "protocol_version": null,
+  "helper_version": null,
+  "cells": [
+    {
+      "cell": "pipe",
+      "start": "2026-09-10T19:41:06.779059+00:00",
+      "end": "2026-09-10T19:41:07.143281+00:00",
+      "exit_code": 0
+    },
+    {
+      "cell": "terminal",
+      "start": "2026-09-10T19:41:07.143721+00:00",
+      "end": "2026-09-10T19:41:13.181424+00:00",
+      "exit_code": 0,
+      "source": "macOS Terminal.app, foreground /bin/bash job",
+      "window_id": "5934",
+      "rows": 24,
+      "cols": 80,
+      "stdout_capture": "screen only; side-channel JSON preserved"
+    }
+  ],
+  "outcome": "captured",
+  "end": "2026-09-10T19:41:13.183762+00:00"
+}
