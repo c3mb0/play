@@ -1,4 +1,5 @@
 [package]
+license.workspace = true
 name = "topology_probe"
 version = "0.1.0"
 edition = "2021"

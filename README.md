@@ -211,3 +211,8 @@ capture, following Rust's [pre_exec safety requirements](https://doc.rust-lang.o
 Only macOS has been runtime-tested; terminal constants and configurations are
 platform-specific. Go vet/staticcheck are inapplicable to this Rust/Python tree;
 Clippy is the Rust static-analysis gate.
+
+## License
+
+[MIT](LICENSE). Copyright (c) 2026 c3mb0 and contributors.
+Third-party dependencies and quoted reference material retain their own licenses.

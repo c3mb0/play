@@ -6,6 +6,7 @@ defmodule PtyLabEx.MixProject do
       app: :pty_lab_ex,
       version: "0.1.0",
       elixir: "~> 1.20",
+      package: [licenses: ["MIT"]],
       start_permanent: Mix.env() == :prod,
       deps: [{:pty_lab, path: "../../erlang/pty_lab", manager: :rebar3}]
     ]

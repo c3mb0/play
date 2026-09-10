@@ -1,6 +1,7 @@
 {application, pty_lab, [
  {description, "Bounded Unix terminal process laboratory"},
  {vsn, "0.2.0"},
+ {licenses, ["MIT"]},
  {registered, [pty_lab_sup, session_sup, receipt_writer]},
  {mod, {pty_lab_app, []}},
  {applications, [kernel, stdlib, crypto]},

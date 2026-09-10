@@ -2,6 +2,9 @@
 members = ["probes/topology_probe", "probes/lifetime_probe", "probes/hello_witness", "probes/byte_witness", "rust/pty_helper"]
 resolver = "2"
 
+[workspace.package]
+license = "MIT"
+
 [workspace.dependencies]
 libc = "0.2"
 serde_json = "1"

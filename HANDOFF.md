@@ -15,9 +15,10 @@ ls-20260910T212301Z, echo-20260910T212302Z, canonical-20260910T212304Z and
 elixir-20260910T212307Z all passed. No Rust/Erlang/dependency changes.
 See experiments/width_001/RESULT.md, make width-check and run_width_pairs/1.
 
-The user asked about licensing during this checkpoint. Recommended Apache-2.0
-for permissive reuse with an express contributor patent grant, with MIT as the
-simpler alternative. No license selection or application was authorized yet.
+The user explicitly selected MIT during this checkpoint. Root LICENSE and Rust,
+Erlang and Elixir package metadata now declare MIT; copyright uses the configured
+Git identity c3mb0 and contributors, year 2026. Third-party dependencies and quoted
+reference material retain their licenses. Historical receipts were not edited.
 
 Next experimental candidate: live resize and observed SIGWINCH, with a new
 predeclared bounded witness. Initial width does not establish signal behavior.
