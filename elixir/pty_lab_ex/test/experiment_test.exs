@@ -81,6 +81,58 @@ defmodule PtyLab.ExperimentTest do
              PtyLab.Experiment.compare([on, unknown], "h\n", "canonical")
   end
 
+  test "width requires only the declared column change and emitted line breaks" do
+    cells = width_cells()
+    assert {"pass", _} = PtyLab.Experiment.compare(cells, "", "width")
+    [wide, narrow] = cells
+
+    same_output =
+      put_in(
+        narrow,
+        [:observation, :streams_hex, "pty_output"],
+        wide.observation.streams_hex["pty_output"]
+      )
+
+    assert {"mismatch", %{treatment_output: false}} =
+             PtyLab.Experiment.compare([wide, same_output], "", "width")
+
+    extra =
+      put_in(narrow, [:observation, :header, "spec", "terminal", "dimensions", "xpixel"], 80)
+
+    assert {"mismatch", %{same_definition: false}} =
+             PtyLab.Experiment.compare([wide, extra], "", "width")
+
+    missing = put_in(narrow, [:observation, :terminal_observations], [])
+
+    assert {"mismatch", %{observed_terminal_configuration: false}} =
+             PtyLab.Experiment.compare([wide, missing], "", "width")
+  end
+
+  defp width_cells do
+    Enum.zip(ls_cells(""), [80, 8])
+    |> Enum.map(fn {cell, cols} ->
+      config = %{
+        "termios" => %{"lflag" => 8},
+        "dimensions" => %{"cols" => cols, "rows" => 24, "xpixel" => 560}
+      }
+
+      cell
+      |> put_in([:observation, :header, "spec"], %{"attachment" => "slave", "terminal" => config})
+      |> put_in(
+        [:observation, :streams_hex, "pty_output"],
+        Base.encode16(
+          if(cols == 80, do: "alpha\tbravo\tcharlie\r\n", else: "alpha\r\nbravo\r\ncharlie\r\n")
+        )
+      )
+      |> update_in(
+        [:observation],
+        &Map.put(&1, :terminal_observations, [
+          %{"phase" => "slave_before_spawn", "echo_mask" => 8, "configuration" => config}
+        ])
+      )
+    end)
+  end
+
   defp canonical_cells do
     Enum.zip(ls_cells(""), [true, false])
     |> Enum.map(fn {cell, canonical} ->

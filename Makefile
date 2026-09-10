@@ -17,7 +17,7 @@ lint:
 	$(PYTHON) -m py_compile experiments/ownership_001/run.py experiments/ownership_001/protocol_check.py
 	$(PYTHON) -m py_compile experiments/receipt_001/run.py
 	$(PYTHON) -m py_compile experiments/witness_001/run.py
-	$(PYTHON) -m py_compile experiments/isolation_001/run.py experiments/elixir_001/run.py experiments/ls_001/run.py experiments/echo_001/run.py experiments/canonical_001/run.py
+	$(PYTHON) -m py_compile experiments/isolation_001/run.py experiments/elixir_001/run.py experiments/ls_001/run.py experiments/echo_001/run.py experiments/canonical_001/run.py experiments/width_001/run.py
 
 otp-build:
 	cd erlang/pty_lab && $(REBAR3) compile
@@ -69,3 +69,7 @@ echo-check: build elixir-build
 .PHONY: canonical-check
 canonical-check: build elixir-build
 	$(PYTHON) experiments/canonical_001/run.py
+
+.PHONY: width-check
+width-check: build elixir-build
+	$(PYTHON) experiments/width_001/run.py

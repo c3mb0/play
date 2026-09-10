@@ -23,6 +23,14 @@ defmodule PtyLab.Experiment do
     run_pairs(options, :canonical)
   end
 
+  @doc "Runs the installed macOS ls witness at initial widths 80 and 8."
+  def run_width_pairs(options) do
+    unless :os.type() == {:unix, :darwin},
+      do: raise(ArgumentError, "macOS terminal fixture required")
+
+    run_pairs(options, :width)
+  end
+
   defp run_pairs(options, witness) do
     root = Path.expand(Map.fetch!(options, :root))
     directory = Path.expand(Map.fetch!(options, :directory))
@@ -48,6 +56,7 @@ defmodule PtyLab.Experiment do
         case witness do
           :echo -> ["echo_on", "echo_off"]
           :canonical -> ["canonical_on", "canonical_off"]
+          :width -> ["wide", "narrow"]
           _ -> ["pipe", "slave"]
         end,
       continuation: "continue_remaining_pairs",
@@ -55,13 +64,13 @@ defmodule PtyLab.Experiment do
       input_delay_ms: if(witness in [:hello, :echo], do: 100, else: 0),
       input_anchor:
         case witness do
-          :ls -> "no input"
+          w when w in [:ls, :width] -> "no input"
           :canonical -> "READY: send h; WINDOW line: send newline; probe window 400 ms"
           _ -> "received spawned"
         end,
       expected_input:
         case witness do
-          :ls -> ""
+          w when w in [:ls, :width] -> ""
           :canonical -> "h\n"
           _ -> "hello\n"
         end,
@@ -73,13 +82,16 @@ defmodule PtyLab.Experiment do
       spec: %{
         "executable" =>
           case witness do
-            :ls -> "/bin/ls"
+            w when w in [:ls, :width] -> "/bin/ls"
             :canonical -> Path.join(root, "target/debug/byte_witness")
             _ -> Path.join(root, "target/debug/hello_witness")
           end,
         "argv" => [],
         "cwd" =>
-          if(witness != :ls, do: root, else: Path.join(root, "experiments/ls_001/fixture")),
+          if(witness in [:ls, :width],
+            do: Path.join(root, "experiments/ls_001/fixture"),
+            else: root
+          ),
         "environment" => %{"PATH" => "/usr/bin:/bin", "LANG" => "C", "TERM" => "xterm-256color"}
       }
     }
@@ -144,7 +156,8 @@ defmodule PtyLab.Experiment do
     input = Map.get(definition.input_overrides, index, definition.expected_input)
 
     unless is_binary(input) and byte_size(input) < 1024 and
-             (String.ends_with?(input, "\n") or (definition.witness == "ls" and input == "")),
+             (String.ends_with?(input, "\n") or
+                (definition.witness in ["ls", "width"] and input == "")),
            do: raise(ArgumentError, "input must be a bounded newline-terminated binary")
 
     spec =
@@ -346,7 +359,7 @@ defmodule PtyLab.Experiment do
       }
 
       checks =
-        if witness in ["echo", "canonical"] do
+        if witness in ["echo", "canonical", "width"] do
           Map.put(
             checks,
             :observed_terminal_configuration,
@@ -366,7 +379,7 @@ defmodule PtyLab.Experiment do
         end
 
       checks =
-        if witness == "canonical" do
+        if witness in ["canonical", "width"] do
           checks
           |> Map.put(:control_output, checks.pipe_output)
           |> Map.put(:treatment_output, checks.pty_output)
@@ -441,6 +454,11 @@ defmodule PtyLab.Experiment do
 
   defp native_axis_matches?(_, _), do: true
 
+  defp cell_spec(spec, "wide"), do: Map.put(spec, "attachment", "slave")
+
+  defp cell_spec(spec, "narrow"),
+    do: spec |> cell_spec("wide") |> put_in(["terminal", "dimensions", "cols"], 8)
+
   defp cell_spec(spec, "canonical_on"), do: cell_spec(spec, "echo_off")
 
   defp cell_spec(spec, "canonical_off") do
@@ -460,6 +478,11 @@ defmodule PtyLab.Experiment do
 
   defp cell_spec(spec, mode), do: Map.put(spec, "attachment", mode)
 
+  defp matched_specs?(wide, narrow, "width"),
+    do:
+      wide["attachment"] == "slave" and wide["terminal"]["dimensions"]["cols"] == 80 and
+        narrow == cell_spec(wide, "narrow")
+
   defp matched_specs?(on, off, "canonical") do
     t = on["terminal"]["termios"]
 
@@ -478,6 +501,9 @@ defmodule PtyLab.Experiment do
 
   defp matched_specs?(a, b, _), do: Map.delete(a, "attachment") == Map.delete(b, "attachment")
 
+  defp control_matches?(cell, _, _, "width"),
+    do: pty_matches?(Base.decode16!(cell.observation.streams_hex["pty_output"]), "", "ls")
+
   defp control_matches?(cell, _, "h\n", "canonical"),
     do:
       Base.decode16!(cell.observation.streams_hex["pty_output"]) ==
@@ -490,6 +516,8 @@ defmodule PtyLab.Experiment do
 
   defp pipe_matches?(bytes, _, "ls"), do: bytes == "alpha\nbravo\ncharlie\n"
   defp pipe_matches?(bytes, input, "hello"), do: bytes == "received: " <> input
+
+  defp pty_matches?(bytes, _, "width"), do: bytes == "alpha\r\nbravo\r\ncharlie\r\n"
 
   defp pty_matches?(bytes, "h\n", "canonical"),
     do: bytes == "READY\r\nWINDOW 68\r\nFINAL 680a\r\n"
