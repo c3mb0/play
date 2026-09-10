@@ -1,3 +1,5 @@
 /target/
 /experiments/gate_001/scratch/
 __pycache__/
+/erlang/pty_lab/_build/
+erl_crash.dump

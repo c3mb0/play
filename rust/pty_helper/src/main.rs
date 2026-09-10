@@ -1,4 +1,5 @@
 //! Phase B: single-threaded, one-shot mechanism. No experiment vocabulary.
+mod port;
 use serde_json::{json, Value};
 use std::{
     fs::File,
@@ -247,7 +248,14 @@ fn run() -> Result<i32, Box<dyn std::error::Error>> {
 }
 
 fn main() {
-    let code = match run() {
+    let mode = std::env::args().nth(1);
+    let result = match mode.as_deref() {
+        Some("--port") => port::relay(),
+        Some("--guardian") => port::guardian(),
+        Some("--alive") => port::alive(),
+        _ => run(),
+    };
+    let code = match result {
         Ok(code) => code,
         Err(error) => {
             eprintln!(
