@@ -1,61 +1,56 @@
-# Personal terminal UI — next-session handoff
+# A web terminal that does not suck
 
-Status: PLAN ONLY. No UI, palette adapter, dependencies or runtime changes were
-implemented. The user closed the citizen-lab phase and now wants a terminal they
-can personally use. They explicitly authorized reusing Signal's color values and
-asked for ecosystem options before implementation. The user clarified that they
-developed Signal themselves, are its sole contributor/user, and explicitly want
-the palette reused. Treat that authorization as settled. Do not restart lab expansion.
+Status: PLAN ONLY. This is the current implementation handoff, replacing the
+broader UI-options survey in this file's history. No implementation is authorized
+in the planning session. The next session should implement this plan when asked.
 
-## Recommendation and decision
+## Product decision
 
-Start with a local Phoenix endpoint plus xterm.js and a small TypeScript frontend.
-Keep Erlang session ownership and the external Rust helper. Make one shell usable
-in a browser first. Add Tauri only after that works if a standalone desktop window
-is wanted. This is the recommended default for the next session, not a claim that
-the user has selected a framework. A request to implement this handoff can accept
-that default; do not scaffold several competing stacks.
+A local browser terminal: Phoenix + xterm.js + a small TypeScript/CSS frontend.
+Keep Erlang/OTP session ownership and the external Rust helper. No desktop wrapper,
+no alternative toolkit evaluation, no dashboard. The user explicitly wants:
 
-Why: terminal emulation is its own subsystem. xterm.js supplies an established
-terminal surface; Phoenix integrates with the BEAM processes we already have.
-Rust is the stronger choice here for a fully native GUI, but a general GUI toolkit
-does not by itself provide a finished terminal widget. Those are engineering
-judgments about this project, not a universal ecosystem ranking.
+- A tab strip. Click a tab to switch terminals.
+- **+** opens a new terminal tab.
+- **×** on a tab closes that terminal session.
+- The active terminal fills everything below the strip.
 
-| Option | What it supplies | Fit / tradeoff |
-| --- | --- | --- |
-| Phoenix + xterm.js | Local web application, channel transport, browser terminal surface | Recommended first usable version; fits existing OTP ownership; browser shortcuts and lifecycle need explicit handling |
-| Tauri + xterm.js | Desktop window with Rust host and OS webview; same frontend can be reused | Recommended later desktop wrapper; package/start/stop BEAM release too, and test macOS WebKit behavior |
-| Electron + xterm.js | Desktop shell with bundled Chromium/Node | Good alternative if consistent Chromium behavior outweighs a larger runtime; still connect to BEAM rather than create a second PTY owner |
-| Rust Iced/egui + terminal core | Native GUI toolkits plus reusable terminal state/parser components | Strongest route of these for a Rust-native product; materially more work for glyph rendering, selection, IME, accessibility and terminal integration |
-| Erlang wx | OTP binding to native wxWidgets GUI components | Real and longstanding surprise option. Good for tooling/inspectors; a terminal emulator/renderer still has to be integrated. Not the quickest route to this personal terminal |
-| Elixir Scenic | BEAM client graphics framework, primarily aimed at fixed-screen devices | Interesting native experiment; less direct fit than xterm.js for a desktop terminal |
+That is the entire application UI. No sidebar, settings panel, toolbar, search
+panel, font controls, inspector, telemetry badges or lab controls. Use sensible
+fixed defaults and the Signal palette. Keyboard input, selection, scrolling,
+copy/paste and ordinary terminal behavior are intrinsic terminal functionality.
 
-Do not treat Ratatui or another TUI toolkit as the emulator: it draws inside an
-existing terminal. A custom native alternative should evaluate alacritty_terminal
-for its parser/grid/selection model, while preserving our PTY ownership rather
-than accidentally enabling its separate PTY event loop. No new emulator from scratch.
+Suggested shape:
 
-## Workspace and source binding
+    [ Terminal 1 × ] [ Terminal 2 × ]  +
+    ┌──────────────────────────────────┐
+    │ shell                            │
+    │                                  │
+    └──────────────────────────────────┘
 
-- Repo: /Users/cem/play/pty-lab; origin git@github.com:c3mb0/play.git; MIT.
-- Lab baseline inspected: f7e6c11d0a0a722652b3fead8bf98a23bc27d81f.
-- Read HANDOFF.md, erlang/pty_lab/API.md, protocol/README.md, RECEIPTS.md and
-  OPERATOR-WISHLIST.md before changing lifecycle semantics. Check git status first.
-- Signal source: /Users/cem/ins_repo/signal (not /home/ins_repo/signal).
-- Signal HEAD: b8efbdf9c00cccc68b93884b7b942a64ebd369ee; clean when inspected.
-- Canonical roles: signal.go, gruvbox.go, roles.go; Roles() is the export boundary.
-- Signal typography: typography.go. Signal Mono / FiraCode, Nerd Fonts v3.4.0,
-  ligatures disabled; fallback ui-monospace, SFMono-Regular, Menlo, Monaco,
-  Consolas, monospace. Font distribution is separate from copying color values;
-  if bundling font files, retain their SIL OFL terms/notices. Export theme roles;
-  no whole-repository vendoring or runtime Go dependency is needed.
+The drawing's border is illustrative, not required chrome. Use a quiet tab strip
+and the full available viewport. Errors/exit/disconnect information goes in the
+existing terminal surface or tab label, never a new control panel.
 
-The source revision above is a navigation/reproducibility aid, not an ownership
-check or an approval gate. Export the role values into one local theme snapshot
-so the terminal builds without the Signal checkout or Go. Keep a short source
-pointer with it; updates can be intentional later. No hash ceremony is required.
-This handoff lists values but creates no executable theme artifact.
+## Workspace and authority
+
+Repository: /Users/cem/play/pty-lab, origin git@github.com:c3mb0/play.git, MIT.
+Lab baseline: f7e6c11d0a0a722652b3fead8bf98a23bc27d81f. Check current git status;
+read local AGENTS instructions, erlang/pty_lab/API.md, protocol/README.md and
+OPERATOR-WISHLIST.md. The lab is complete. Preserve its tests and receipts; do
+not expand the lab instead of delivering the personal terminal.
+
+Signal palette reuse is explicitly authorized by the user. Source:
+/Users/cem/ins_repo/signal, signal.go + gruvbox.go + roles.go (Roles() export).
+Inspected source revision b8efbdf9c00cccc68b93884b7b942a64ebd369ee. This is a source
+pointer, not a permission or hash gate. Copy/export the role values into one local
+theme snapshot; normal builds must not require the Signal checkout or Go. Do not
+modify Signal. User describes it as their own work and is its sole contributor/user.
+
+Typography source: typography.go; Signal Mono / FiraCode, Nerd Fonts v3.4.0,
+ligatures disabled. Use an available monospace fallback initially. If bundling
+font files, include their SIL OFL terms/notices. Pick one readable default size;
+no font UI in this version.
 
 ## Palette lifted into the plan
 
@@ -93,131 +88,120 @@ adapter. Cursor accent can use canvas against text. Review selection contrast,
 bold versus bright, dim text, Unicode/box drawing and screenshot legibility in the
 actual terminal. Color names do not imply validated contrast on every background.
 
-## Intended shape
+## Architecture
 
-    xterm.js + small TS/CSS chrome
-               | Phoenix channel (local only)
-    Elixir connection/session adapter
-               | existing Erlang API, extended explicitly
-    Erlang session worker -> Rust relay -> guardian -> interactive shell
+    Browser: tab strip + one xterm instance per live tab
+        ↕ Phoenix channel, ordered terminal bytes/control messages
+    Elixir terminal-session adapter
+        ↕ Erlang public session API with explicit interactive extensions
+    session_worker → Rust relay → guardian → controlling PTY → shell
 
-Phoenix serves local assets and routes sessions; xterm owns the screen/grid,
-escape-sequence parsing, selection and terminal input encoding. A LiveView page
-may own outer controls later, but the terminal DOM is client-owned: do not send
-cell grids or every keystroke through LiveView rendering/diffs. No React/Svelte
-framework is required for the first terminal surface.
+Create a small sibling app, e.g. elixir/play_terminal, depending on pty_lab.
+Keep frontend assets with that app. xterm owns emulation, screen buffers, terminal
+input encoding and selection. TypeScript owns tab state. Phoenix owns transport;
+Erlang owns sessions; Rust owns Unix mechanics. No React/Svelte requirement and no
+LiveView diffing of terminal content. No second PTY owner in the frontend layer.
 
-First product shape: one terminal pane filling the window, small title strip,
-font-size controls and an exit/disconnect indication. Add tabs only after one pane
-works. No lab dashboard, inspector badges, decorative telemetry or workflow UI.
+## Tab behavior — implement exactly
 
-## Gaps to solve before calling it a usable terminal
+1. First load opens one shell tab. **+** creates a fresh independent session and
+   focuses it. Creation failure stays visible in that tab; no invisible retry.
+2. Switching tabs preserves each shell, screen, scrollback, selection where
+   supported, and output processing. It must not restart, reconnect or replay input.
+3. **×** closes that exact session, initiates bounded terminal cleanup and disposes
+   its frontend listeners/buffers. Stop the close click from also selecting the tab.
+   Closing an inactive tab must not disturb the active one. After closing the
+   active tab, select the nearest remaining tab and focus its terminal.
+4. Closing the final tab leaves an empty surface with **+** available. Do not
+   automatically create a replacement shell.
+5. A shell that exits leaves its final screen visible in an exited tab until ×.
+   Never silently restart it. A disconnected tab is visibly disconnected and
+   cannot keep accepting input as if it were connected.
+6. Accessible names for +/×, sensible focus order, and browser resize behavior are
+   required. No additional controls are implied by accessibility support.
 
-1. Interactive shell topology. Use ctty, fresh session and correct foreground
-   process group, not the lab's slave-only comparison mode. Default to the user's
-   configured executable shell, fallback /bin/zsh on this Mac; launch interactively
-   and document login-shell choice. Start in an explicit user-selected cwd/default
-   home. Use an explicit inherited environment snapshot appropriate to personal
-   use, including TERM compatible with xterm; do not reuse the lab's tiny env or
-   change the user's shell configuration. Ctrl-C/Ctrl-Z are terminal input bytes
-   interpreted by line discipline/job control, not GUI-issued kill shortcuts.
-2. Real lifetime policy. Current OTP sessions enforce a maximum 60000 ms deadline.
-   A shell must survive normal use. Add an explicit interactive policy, e.g. a
-   renewable owner lease with bounded disconnect grace, while keeping experiment
-   deadline behavior unchanged. Define tab close, page refresh, browser death and
-   BEAM restart. First version: no detach, no automatic shell replay; lost owner
-   cancels after stated grace. Do not silently interpret caller death as cleanup.
-3. Live resize. Add semantic resize(rows, cols), validate bounds, apply TIOCSWINSZ
-   in Rust and return observed dimensions. Fit xterm after fonts load and on size
-   changes; initialize size before launch. Test SIGWINCH and foreground job behavior
-   with a controlled subject before using an editor. Initial-width evidence does
-   not establish live resize behavior.
-4. Flow control. Keep raw PTY bytes ordered. Decode helper hex to bytes, not to
-   independently decoded text chunks; pass Uint8Array to xterm. Preserve partial
-   UTF-8/escape sequences. Forward onData and, where needed, onBinary correctly.
-   Bound every queue including BEAM mailboxes and browser buffers. Use output
-   credits/acknowledgements tied to xterm.write completion and propagate backpressure
-   upstream without blocking control/close messages. Current lab overflow-failure
-   behavior alone is not adequate for a comfortable long output stream. Keep
-   protocol changes semantic; do not build a generalized stream platform.
-5. End versus EOF versus cleanup. Split direct-child exit from output stream
-   completion when needed; a shell may exit while a descendant holds descriptors.
-   Define ordinary terminal hangup and bounded close escalation. Existing public
-   terminate kills only the direct child. Verify a foreground sleep/job on close;
-   do not claim arbitrary descendant containment. UI state must distinguish exited,
-   disconnected and cleanup incomplete. Retain remaining observations without
-   making the user read harness internals during normal use.
-6. Recording policy. Lab receipts synchronously retain full input/output. Personal
-   terminals handle passwords and private command text. Default personal-session
-   transcript recording OFF; keep bounded in-memory scrollback and minimal lifecycle
-   events. Explicit opt-in recording/export can come later. Do not infer sensitive
-   input solely from ECHO state. Preserve lab receipt behavior and old artifacts.
+## Necessary machinery, kept behind the two controls
 
-For the local-browser route, bind loopback, validate origin and require a startup
-capability/token for shell control. Load only local app assets. PTY output is
-terminal data, never injected HTML or backend commands. Give clipboard escape
-requests and clickable links explicit handling. This is a local personal app,
-not a remotely accessible shell service or multi-tenant product.
+- **A real shell:** controlling PTY (ctty), new session, correct foreground group.
+  Use the configured user shell with an explicit interactive/login choice; /bin/zsh
+  is the Mac fallback. Explicit cwd (home default) and usable inherited environment,
+  including appropriate TERM. Do not reuse the lab's minimal environment or change
+  the user's shell startup files. Ctrl-C/Ctrl-Z travel as terminal input, allowing
+  the kernel and shell to implement normal job control.
+- **Interactive lifetime:** the current worker caps sessions at 60000 ms. Add a
+  separate interactive policy with owner monitoring/renewable lease and bounded
+  disconnect grace. Keep existing experiment deadlines unchanged. First version
+  has no detach/persistence: page refresh/browser closure cancels its old sessions
+  after the stated grace; a new page does not resurrect them. Brief transport
+  reconnect must not duplicate input or create a replacement shell.
+- **Live size:** measure terminal cells after fonts load, set initial dimensions
+  before shell launch, and forward resize(rows, cols) to Rust TIOCSWINSZ. Validate
+  bounds and acknowledge observed size. Resize active/hidden tabs correctly when
+  shown. Test foreground application SIGWINCH behavior; initial-width evidence
+  alone is insufficient.
+- **Bytes and flow control:** preserve stream order, split UTF-8 and escape sequences.
+  Decode helper hex to bytes and use xterm's byte input rather than separately
+  decoding chunks to strings. Forward onData/onBinary correctly. Bound backend
+  mailboxes and browser queues; use xterm processing acknowledgements/credits to
+  propagate backpressure without starving resize/close. One busy or hidden tab
+  must not freeze the others. Do not silently drop terminal output.
+- **Truthful close:** caller death is not currently worker death. Explicitly bind
+  tab ownership to session lifetime. Separate shell exit, stream EOF and cleanup;
+  descendants can retain output descriptors. Implement conventional terminal
+  hangup and bounded escalation for the documented job/process scope. Check a
+  controlled foreground job and report incomplete cleanup honestly. Do not claim
+  arbitrary descendant containment or kill unrelated processes.
+- **Personal-use recording:** default full input/output recording OFF. The lab
+  currently journals raw keystrokes, including potential passwords. Use bounded
+  in-memory scrollback and minimal lifecycle records for personal sessions; no
+  recording/export UI in this version. Preserve lab recording and immutable evidence.
+- **Local app boundary:** loopback-only service, origin validation and startup
+  capability/token for shell access. Local assets; terminal bytes never become
+  injected HTML/backend commands. Explicit clipboard/hyperlink handling. No remote
+  shell service, accounts, multi-tenancy, deployment or approval platform.
 
-## Implementation order for the next session
+## Build order
 
-A. Bind checkout/source revisions, read relevant AGENTS instructions, choose the
-   recommended browser route unless the user specifies desktop-first. Keep the
-   completed lab stable. Create a small terminal-app sibling under elixir/ (name
-   such as play_terminal), depending on pty_lab; web assets live with that app.
-   Do not repurpose experiment_runner as the personal terminal's session manager.
-B. Export the pinned Signal role snapshot and make the xterm theme/ANSI adapter.
-   Render a static terminal specimen with local fonts/fallback, ANSI/Unicode and
-   selection. No new PTY owner or emulator. Pin package versions and lockfiles.
-C. Wire one interactive controlling-PTY shell through the existing ownership chain.
-   Add the explicit personal lifetime/recording policies and ordered byte bridge.
-   Keep start/close/error behavior visible and make a one-command local launcher.
-D. Implement resize and output flow control; verify editor alternate-screen,
-   keyboard, paste, Unicode, job control and close behavior. Only then add tabs,
-   search, font zoom and a small preferences surface as needed for actual use.
-E. If desired, wrap these same assets in Tauri. Package a BEAM release and helper,
-   define process startup/shutdown, keep BEAM as sole session owner, and test the
-   macOS webview directly. Do not add a parallel Rust PTY stack inside Tauri.
-   Bundling a BEAM runtime has its own size/startup cost even with Tauri's small
-   host. Do not do desktop packaging before a useful shell exists.
+1. Bind workspace and inspect the existing session boundary. Scaffold one local
+   Phoenix app with pinned dependencies and lockfiles; no ecosystem re-evaluation.
+2. Export the Signal theme and wire xterm into the exact tab strip above. Use a
+   temporary specimen only to check fonts/colors/selection, then connect a real shell.
+3. Complete one shell's controlling-terminal, lifetime, recording and ordered-byte
+   path. Provide one documented command, preferably make terminal, to start the
+   local app and print its URL. No company checkout dependency at runtime.
+4. Finish live resize, flow control and explicit close semantics; wire independent
+   sessions to +/×. Do not defer tabs: they are the requested product.
+5. Verify the useful acceptance list below, document the launcher and limitations,
+   commit and push. Stop. Desktop packaging and extra UI are outside this plan.
 
-## First useful acceptance, not another lab campaign
+## Acceptance: can the user actually use it?
 
-- Start from one documented command; type and edit commands in the user's shell.
-- Shell survives past 60 seconds. A controlled test proves lease expiry/owner loss.
-- Backspace, arrows, history, Ctrl-C, Ctrl-Z, fg, Ctrl-D, Option/Alt and Cmd-C/V work
-  as specified; application copy does not swallow Ctrl-C interrupt. Bracketed paste,
-  IME, Unicode/wide characters, selection and line wrapping are checked on macOS.
-- less or an installed editor enters/exits alternate screen cleanly; repeated
-  window resize updates stty size and redraws without changing shell session.
-- A bounded high-output command completes without dropped bytes or unbounded memory;
-  UI stays usable. Test split UTF-8/escape chunks and input during output pressure.
-- Tab/window disconnect and helper failure leave a truthful UI and bounded cleanup
-  for the documented process scope. No surprise session resurrection.
-- Default recording produces no on-disk keystroke/output transcript. Lab recording
-  remains unchanged. Palette comes from the pinned role export, not scattered literals.
-- Run the existing checks appropriate to changed Rust/OTP/protocol code once; keep
-  any failures and report scope honestly. Stop when a single-pane terminal is useful.
+- One command starts the local app. Open URL, get shell. + creates another shell;
+  switching tabs preserves both; × closes the selected session only; last close
+  leaves +. No other app controls exist.
+- A shell survives beyond 60 seconds; owner loss is handled according to the
+  documented grace. No accidental duplication after reconnect or refresh.
+- Backspace, arrows/history, Ctrl-C, Ctrl-Z/fg, Ctrl-D, Option/Alt, Cmd-C/V,
+  bracketed paste, IME and Unicode/wide characters work as specified on macOS.
+  Copy shortcuts must not consume terminal Ctrl-C. Selection survives ordinary
+  output and scrolling; new output does not yank a user away from older scrollback.
+- less or an installed editor uses alternate screen and redraws correctly through
+  repeated resize and tab switching. stty size matches the rendered cell grid.
+- A bounded high-output command loses no bytes, keeps memory bounded, and leaves
+  other tabs and close controls responsive. Test split UTF-8/escape sequences.
+- Exiting shell, closing a tab with a controlled foreground job, browser loss and
+  helper failure produce truthful state and cleanup for the documented scope.
+- No default on-disk keystroke/output transcripts. Existing lab receipt behavior
+  remains intact. Palette literals come from one snapshot and adapter.
+- Run the existing checks appropriate to changed helper/protocol/OTP code. Keep
+  failures visible; do not turn this into another open-ended lab campaign.
 
-No implementation was performed while preparing this handoff. Source code and
-fonts from Signal were inspected only. Only this Markdown plan was created.
+## References for implementation
 
-## Primary references checked for this plan
+- https://github.com/xtermjs/xterm.js
+- https://xtermjs.org/docs/api/terminal/interfaces/itheme/
+- https://xtermjs.org/docs/guides/flowcontrol/
+- https://hexdocs.pm/phoenix/channels.html
 
-- xterm.js project and existing consumers: https://github.com/xtermjs/xterm.js
-- xterm theme API: https://xtermjs.org/docs/api/terminal/interfaces/itheme/
-- xterm output flow control: https://xtermjs.org/docs/guides/flowcontrol/
-- Phoenix channels: https://hexdocs.pm/phoenix/channels.html
-- Tauri architecture: https://v2.tauri.app/concept/architecture/
-- Tauri external binaries: https://v2.tauri.app/develop/sidecar/
-- Electron process model: https://www.electronjs.org/docs/latest/tutorial/process-model
-- Iced: https://iced.rs/
-- egui: https://github.com/emilk/egui
-- alacritty_terminal API: https://docs.rs/alacritty_terminal/latest/alacritty_terminal/
-- Erlang wx: https://www.erlang.org/doc/apps/wx/chapter.html
-- OTP Observer: https://www.erlang.org/doc/apps/observer/observer_ug.html
-- Scenic scope: https://hexdocs.pm/scenic/overview_general.html
-
-These establish available capabilities; no GUI stack was installed, benchmarked
-or runtime-tested in this planning session. Version selection belongs to the
-implementation session's lockfiles and platform checks.
+Only this Markdown plan was edited in this planning session. No UI, runtime,
+dependency or palette implementation was created.
