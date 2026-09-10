@@ -1,6 +1,30 @@
 # Checkpoint handoff
 
-## Current: ICANON delivery axis, 2026-09-11 local / 2026-09-10 UTC
+## Current: initial-width axis, 2026-09-11 local / 2026-09-10 UTC
+
+Three PTY/PTY pairs of installed /bin/ls passed: initial columns 80 then 8, same
+fixture/argv/environment/cwd/empty input. Wide output alpha\tbravo\tcharlie\r\n;
+narrow alpha\r\nbravo\r\ncharlie\r\n. Native readback verifies only cols changed;
+rows, pixels and all termios remain fixed. No emulator wrapping or resize signal.
+
+Plan 7e9b6a2; runtime source 6fd4052; receipts width-20260910T212259Z. One run,
+zero retries, six verified sealed receipts, eighteen reported PIDs absent, 1.641 s.
+Fixture and subject hashes unchanged; ordering/max concurrency two verified.
+Six Elixir tests, formatting/compilation, Clippy/Python syntax passed. Regressions
+ls-20260910T212301Z, echo-20260910T212302Z, canonical-20260910T212304Z and
+elixir-20260910T212307Z all passed. No Rust/Erlang/dependency changes.
+See experiments/width_001/RESULT.md, make width-check and run_width_pairs/1.
+
+The user asked about licensing during this checkpoint. Recommended Apache-2.0
+for permissive reuse with an express contributor patent grant, with MIT as the
+simpler alternative. No license selection or application was authorized yet.
+
+Next experimental candidate: live resize and observed SIGWINCH, with a new
+predeclared bounded witness. Initial width does not establish signal behavior.
+No such experiment has been started; no factorial matrix expansion is implied.
+Prior setup-readback, guardian, descendant and platform limits persist.
+
+## Historical: ICANON delivery axis, 2026-09-11 local / 2026-09-10 UTC
 
 Three canonical-on/off PTY pairs passed with echo off in both. New byte_witness
 uses poll plus one-byte libc::read, with a fixed 400 ms early window and bounded

@@ -1,0 +1,38 @@
+{
+  "start": "2026-09-10T21:23:02.793923+00:00",
+  "retries": 0,
+  "outer_timeout_seconds": 60,
+  "source_commit": "6fd4052b5db8c98090f3714581f743d9d0a17e6f",
+  "subject_sha256_before": "2b507457148c69b0f4d7eee258f7f8a1afce95a8a8550f4c654b17c820fb5a06",
+  "mix_exit_code": 0,
+  "maximum_observed_concurrent_sessions": 2,
+  "subject_sha256_after": "2b507457148c69b0f4d7eee258f7f8a1afce95a8a8550f4c654b17c820fb5a06",
+  "outcome": "pass",
+  "report_counts": {
+    "pairs": {
+      "pass": 3
+    }
+  },
+  "all_reported_pids_absent": [
+    61914,
+    61916,
+    61917,
+    61918,
+    61919,
+    61920,
+    61922,
+    61924,
+    61925,
+    61926,
+    61927,
+    61928,
+    61930,
+    61931,
+    61932,
+    61934,
+    61935,
+    61936
+  ],
+  "sessions": 6,
+  "end": "2026-09-10T21:23:04.534767+00:00"
+}

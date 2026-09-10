@@ -103,3 +103,16 @@ well as receipt custody, scheduling and PID absence. Comparison keys are
 control_output and treatment_output. A phase-input error is recorded in the
 session's input_request; missing/failed sessions retain execution_failure status.
 Timing is a shared phase policy, not a promise of identical OS scheduling.
+
+## Initial terminal width
+
+`PtyLab.Experiment.run_width_pairs/1` runs installed /bin/ls through PTY slaves at
+80 then 8 columns, with the same options as run_ls_pairs/1 and the same fixture.
+It sends no input and changes only dimensions.cols. Rows, pixel dimensions and
+termios remain fixed. The macOS fixture is explicitly required. Comparisons
+require complete native readback and the declared one-row/three-line output;
+control_output and treatment_output name the two output predicates.
+
+`make width-check` additionally validates fixture and subject hashes, receipt
+custody, scheduling and bounded PID absence. This sets width at spawn; no dynamic
+resize command or SIGWINCH behavior is implemented by this API.
