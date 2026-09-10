@@ -83,7 +83,14 @@ impl Frames {
     }
     fn flush(&mut self) -> Result<()> {
         if !self.output.is_empty() {
-            match io::stdout().write(self.output.make_contiguous()) {
+            let bytes = self.output.make_contiguous();
+            let written = unsafe { libc::write(1, bytes.as_ptr().cast(), bytes.len()) };
+            let result = if written < 0 {
+                Err(io::Error::last_os_error())
+            } else {
+                Ok(written as usize)
+            };
+            match result {
                 Ok(0) => return Err("protocol stdout closed".into()),
                 Ok(n) => {
                     self.output.drain(..n);
@@ -108,9 +115,10 @@ pub fn relay() -> Result<i32> {
     std::thread::spawn(move || {
         let _ = io::copy(&mut io::stdin(), &mut input);
     });
+    let mut output = unsafe { File::from_raw_fd(1) };
     let copy = io::copy(
         &mut guardian.stdout.take().ok_or("missing guardian stdout")?,
-        &mut io::stdout(),
+        &mut output,
     );
     // Returning exits the relay process, closing the guardian's command pipe even
     // when the input-forwarding thread is blocked. Never kill the cleanup owner.

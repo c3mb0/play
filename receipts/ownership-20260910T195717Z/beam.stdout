@@ -1,0 +1,111 @@
+=ERROR REPORT==== 10-Sep-2026::22:57:24.565400 ===
+** Generic server <0.94.0> terminating 
+** Last message in was {command,#{<<"command">> => <<"write">>,
+                                  <<"hex">> => <<"00FF0A410D42">>}}
+** When Server state == #{id => <<"binary-input">>,owner => <0.10.0>,
+                          port => #Port<0.5>,
+                          timer => #Ref<0.768049307.3541565441.192047>,
+                          seq => 2,
+                          child =>
+                              #{<<"attachment">> => <<"pipe">>,
+                                <<"guardian_pid">> => 38568,
+                                <<"helper_pid">> => 38567,
+                                <<"helper_version">> => <<"0.1.0">>,
+                                <<"new_session">> => true,<<"pid">> => 38569},
+                          outcome => <<"timeout">>,
+                          identity =>
+                              #{<<"cell">> => <<"binary-input">>,
+                                <<"experiment">> => <<"ownership_001">>,
+                                <<"session">> => <<"binary-input">>},
+                          helper_pid => 38567,received => 2}
+** Reason for termination ==
+** {badarg,[{erlang,port_command,
+                    [#Port<0.5>,
+                     <<"{\"command\":\"write\",\"hex\":\"00FF0A410D42\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"seq\":3,\"v\":1}">>,
+                     [nosuspend]],
+                    [{error_info,#{module => erl_erts_errors}}]},
+            {session_worker,send,2,
+                            [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl"},
+                             {line,70}]},
+            {session_worker,handle_call,3,
+                            [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl"},
+                             {line,27}]},
+            {gen_server,try_handle_call,4,
+                        [{file,"gen_server.erl"},{line,2470}]},
+            {gen_server,handle_msg,3,[{file,"gen_server.erl"},{line,2499}]},
+            {proc_lib,init_p_do_apply,3,[{file,"proc_lib.erl"},{line,333}]}]}
+** Client <0.10.0> stacktrace
+** [{gen,do_call,4,[{file,"gen.erl"},{line,262}]},
+    {gen_server,call,3,[{file,"gen_server.erl"},{line,1297}]},
+    {experiment_runner,run,2,
+                       [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/experiment_runner.erl"},
+                        {line,35}]},
+    {erl_eval,do_apply,7,[{file,"erl_eval.erl"},{line,1044}]},
+    {erl_eval,try_clauses,10,[{file,"erl_eval.erl"},{line,1690}]},
+    {init,start_it,1,[]},
+    {init,start_em,1,[]},
+    {init,do_boot,3,[]}]
+
+exit:{{badarg,[{erlang,port_command,
+                       [#Port<0.5>,
+                        <<"{\"command\":\"write\",\"hex\":\"00FF0A410D42\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"seq\":3,\"v\":1}">>,
+                        [nosuspend]],
+                       [{error_info,#{module => erl_erts_errors}}]},
+               {session_worker,send,2,
+                               [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl"},
+                                {line,70}]},
+               {session_worker,handle_call,3,
+                               [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl"},
+                                {line,27}]},
+               {gen_server,try_handle_call,4,
+                           [{file,"gen_server.erl"},{line,2470}]},
+               {gen_server,handle_msg,3,[{file,"gen_server.erl"},{line,2499}]},
+               {proc_lib,init_p_do_apply,3,
+                         [{file,"proc_lib.erl"},{line,333}]}]},
+      {gen_server,call,
+                  [<0.94.0>,
+                   {command,#{<<"command">> => <<"write">>,
+                              <<"hex">> => <<"00FF0A410D42">>}},
+                   2000]}}
+[{gen_server,call,3,[{file,"gen_server.erl"},{line,1301}]},
+ {experiment_runner,run,2,
+                    [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/experiment_runner.erl"},
+                     {line,35}]},
+ {erl_eval,do_apply,7,[{file,"erl_eval.erl"},{line,1044}]},
+ {erl_eval,try_clauses,10,[{file,"erl_eval.erl"},{line,1690}]},
+ {init,start_it,1,[]},
+ {init,start_em,1,[]},
+ {init,do_boot,3,[]}]
+=CRASH REPORT==== 10-Sep-2026::22:57:24.569318 ===
+  crasher:
+    initial call: session_worker:init/1
+    pid: <0.94.0>
+    registered_name: []
+    exception error: bad argument
+      in function  port_command/3
+         called as port_command(#Port<0.5>,
+                                <<"{\"command\":\"write\",\"hex\":\"00FF0A410D42\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"seq\":3,\"v\":1}">>,
+                                [nosuspend])
+      in call from session_worker:send/2 (/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl:70)
+      in call from session_worker:handle_call/3 (/Users/cem/play/pty-lab/erlang/pty_lab/src/session_worker.erl:27)
+      in call from gen_server:try_handle_call/4 (gen_server.erl:2470)
+      in call from gen_server:handle_msg/3 (gen_server.erl:2499)
+    ancestors: [session_sup,pty_lab_sup,<0.83.0>]
+    message_queue_len: 5
+    messages: [{#Port<0.5>,
+                   {data,<<"{\"data\":{\"stream\":\"stdout\"},\"event\":\"stream_end\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"monotonic_ns\":5001765500,\"seq\":3,\"unix_ns\":1789070244557740000,\"v\":1}">>}},
+                  {#Port<0.5>,
+                   {data,<<"{\"data\":{\"stream\":\"stderr\"},\"event\":\"stream_end\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"monotonic_ns\":5001868042,\"seq\":4,\"unix_ns\":1789070244557843000,\"v\":1}">>}},
+                  {#Port<0.5>,
+                   {data,<<"{\"data\":{\"code\":null,\"signal\":9},\"event\":\"child_exit\",\"identity\":{\"cell\":\"binary-input\",\"experiment\":\"ownership_001\",\"session\":\"binary-input\"},\"monotonic_ns\":5001937125,\"seq\":5,\"unix_ns\":1789070244557912000,\"v\":1}">>}},
+                  {#Port<0.5>,{exit_status,0}},
+                  {'EXIT',#Port<0.5>,normal}]
+    links: [<0.86.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 17731
+    stack_size: 29
+    reductions: 21012
+  neighbours:
+
