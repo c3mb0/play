@@ -1,0 +1,2 @@
+{"errno":2,"event":"os_error","message":"No such file or directory (os error 2)","operation":"spawn/pre_exec"}
+{"event":"helper_error","message":"No such file or directory (os error 2)"}

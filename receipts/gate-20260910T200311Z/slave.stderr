@@ -1,0 +1,3 @@
+{"controlling_tty":false,"event":"spawned","helper_version":"0.2.0","new_session":true,"pid":39952}
+{"event":"master_end","read":0}
+{"code":0,"elapsed_ns":278940084,"event":"child_exit","signal":null}

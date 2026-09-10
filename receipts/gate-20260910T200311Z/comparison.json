@@ -1,0 +1,279 @@
+{
+  "kind": "interpretation",
+  "reference_projection": {
+    "controlling_tty": true,
+    "stdio": [
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      },
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      },
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      }
+    ]
+  },
+  "helper_projection": {
+    "controlling_tty": true,
+    "stdio": [
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      },
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      },
+      {
+        "isatty": true,
+        "termios": {
+          "canonical": true,
+          "cc": [
+            4,
+            255,
+            255,
+            127,
+            23,
+            21,
+            18,
+            255,
+            3,
+            28,
+            26,
+            25,
+            17,
+            19,
+            22,
+            15,
+            1,
+            0,
+            20,
+            255
+          ],
+          "cflag": 19200,
+          "echo": true,
+          "iflag": 27394,
+          "isig": true,
+          "ispeed": 9600,
+          "lflag": 536872395,
+          "oflag": 3,
+          "ospeed": 9600
+        },
+        "dimensions": {
+          "cols": 80,
+          "rows": 24,
+          "xpixel": 560,
+          "ypixel": 336
+        },
+        "foreground_is_subject_group": true
+      }
+    ]
+  },
+  "equal": true,
+  "excluded": [
+    "pid",
+    "ppid",
+    "absolute sid",
+    "absolute pgrp",
+    "session leadership"
+  ]
+}
