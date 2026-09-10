@@ -1,0 +1,9 @@
+error:{recovery_failed,{error,{badmatch,{error,eexist}}}}
+[{receipt_experiment,recover,2,
+                     [{file,"/Users/cem/play/pty-lab/erlang/pty_lab/src/receipt_experiment.erl"},
+                      {line,52}]},
+ {erl_eval,do_apply,7,[{file,"erl_eval.erl"},{line,1044}]},
+ {erl_eval,try_clauses,10,[{file,"erl_eval.erl"},{line,1690}]},
+ {init,start_it,1,[]},
+ {init,start_em,1,[]},
+ {init,do_boot,3,[]}]

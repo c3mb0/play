@@ -1,0 +1,17 @@
+{
+  "start": "2026-09-10T20:46:44.087727+00:00",
+  "platform": "macOS-26.6.1-arm64-arm-64bit-Mach-O",
+  "protocol_version": 1,
+  "source_commit": "e69b852437c780c42229421ef965e2d17ef180f2",
+  "source_diff": "",
+  "executable_sha256": {
+    "topology_probe": "34816412b0e6339f1bd1dda46e07eaeea0fa262244f1e51d1732279abe1c9283",
+    "pty_helper": "d12b5dcff56c38018a76b150e09b2cdf6b258ae3569d2aab650623fd1482a9d0",
+    "lifetime_probe": "69e87cc8f5cff8c3b6c2d872995bf6ae9e7d94babb5fd67980e4d8898669aaad"
+  },
+  "retries": 0,
+  "outer_timeout_seconds": 60,
+  "beam_exit_code": 0,
+  "outcome": "pass",
+  "end": "2026-09-10T20:46:45.956587+00:00"
+}

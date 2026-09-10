@@ -1,0 +1,50 @@
+=CRASH REPORT==== 10-Sep-2026::23:46:05.555129 ===
+  crasher:
+    initial call: session_worker:init/1
+    pid: <0.90.0>
+    registered_name: []
+    exception exit: duplicate_identity
+      in function  gen_server:init_it/6 (gen_server.erl:2257)
+    ancestors: [session_sup,pty_lab_sup,<0.83.0>]
+    message_queue_len: 1
+    messages: [{'EXIT',#Port<0.6>,normal}]
+    links: [<0.86.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 1598
+    stack_size: 29
+    reductions: 316998
+  neighbours:
+
+=CRASH REPORT==== 10-Sep-2026::23:46:06.366267 ===
+  crasher:
+    initial call: session_worker:init/1
+    pid: <0.100.0>
+    registered_name: []
+    exception exit: {receipt_io,open,eexist}
+      in function  gen_server:init_it/6 (gen_server.erl:2257)
+    ancestors: [session_sup,pty_lab_sup,<0.83.0>]
+    message_queue_len: 1
+    messages: [{'EXIT',#Port<0.26>,normal}]
+    links: [<0.86.0>]
+    dictionary: []
+    trap_exit: true
+    status: running
+    heap_size: 1598
+    stack_size: 29
+    reductions: 316868
+  neighbours:
+
+=SUPERVISOR REPORT==== 10-Sep-2026::23:46:06.731690 ===
+    supervisor: {local,pty_lab_sup}
+    errorContext: child_terminated
+    reason: killed
+    offender: [{pid,<0.85.0>},
+               {id,receipt_writer},
+               {mfargs,{receipt_writer,start_link,[]}},
+               {restart_type,permanent},
+               {significant,false},
+               {shutdown,5000},
+               {child_type,worker}]
+
