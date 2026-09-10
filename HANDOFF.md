@@ -1,6 +1,36 @@
 # Checkpoint handoff
 
-## Current: constructed behavioral witness, 2026-09-10
+## Current: plumbing isolation and thin Elixir plane, 2026-09-10
+
+Completed the approved bounded plumbing pass before adding Elixir. Full four-part
+session identity, checked Port sends, isolated receipt errors, writer-death
+termination without replay, and the public pty_session API are implemented.
+Isolation's six scenarios passed; the existing witness, nine ownership checks
+and fourteen receipt checks passed again. Plumbing/evidence commit c3e2e08 was
+published before the Elixir implementation.
+
+Elixir source b9b3c8f runs ordinary function/map experiment definitions over that
+API, with bounded concurrency, pipe-before-PTY order, preserved anomalies and
+separate checksummed interpretation reports. Runtime evidence:
+`receipts/elixir-20260910T205341Z`. Nine pairs / eighteen sessions: three normal
+passes; one deliberate mismatch and one execution failure correctly classified
+in separate three-pair experiments; subsequent pairs passed. All journals sealed
+and verified, all fifty reported PIDs absent. One run, zero retries, 4.674 seconds.
+Formatting, compilation with warnings as errors, Clippy/Python syntax and the
+fixed-seed Elixir classification test passed. See experiments/elixir_001/RESULT.md
+and elixir/pty_lab_ex/README.md for reproduction and limits.
+
+Only the constructed witness and macOS have been runtime-tested. Guardian death,
+descendant containment and the terminal-variable matrix remain deferred. The
+next candidate is a predeclared matched pair for an unmodified application;
+there is no authorization inferred here to expand into a framework or matrix.
+
+Origin remains git@github.com:c3mb0/play.git. SSH authentication failed this turn;
+publishing used a per-command HTTPS credential helper through the already
+signed-in gh account. No credentials or global Git/shell configuration changed.
+User authorization to push persists. Checkout: /Users/cem/play/pty-lab.
+
+## Historical: constructed behavioral witness, 2026-09-10
 
 Completed the user's hello-world ping-pong witness. A tiny Rust program enables
 `input> ` if stdin is terminal-attached, reads one line, and replies `received: `

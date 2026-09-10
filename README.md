@@ -3,6 +3,15 @@
 A small Unix process laboratory: terminal attachment topology is an explicit
 experimental variable. Rust touches the machine; Erlang owns session lifecycle.
 
+**Plumbing isolation and the thin Elixir experiment layer: observed PASS.**
+Elixir schedules bounded hello-world pairs through the public Erlang session API.
+Three normal pairs passed; separate deliberate mismatch and execution-failure
+experiments classified their anomalies and completed the later pairs. All 18
+session journals were sealed and verified; all 50 reported OS PIDs were absent.
+[Elixir results](experiments/elixir_001/RESULT.md) ·
+[Elixir API](elixir/pty_lab_ex/README.md) · [Erlang API](erlang/pty_lab/API.md) ·
+[Isolation results](experiments/isolation_001/RESULT.md).
+
 **First behavioral witness: observed PASS on macOS 26.6.1 arm64.**
 The same hello-world program received `hello\n` through a pipe and a PTY. Both
 replied `received: hello` and exited 0; only the PTY run enabled `input> `.
@@ -23,7 +32,7 @@ Nine OTP sessions covered topology, binary input, helper murder under pipes and
 PTY, worker kill, timeout, and successful execution after faults in the same
 BEAM. All reported processes in the fault cells were absent within three seconds.
 The SIGHUP-ignoring lifetime probe makes cleanup independent of terminal hangup.
-No Elixir, NIF, UI or terminal state matrix exists yet.
+No NIF, UI or terminal state matrix exists yet.
 
 The earlier Phase A/B gate reproduced the real macOS Terminal reference on the
 terminal dimensions declared before measurement:
@@ -85,6 +94,7 @@ command ordering, exit signals and timeout/failure outcomes remain inspectable.
 The [protocol contract](protocol/README.md) explains bounds and error semantics.
 
 Requires OTP 27+ for native JSON (tested with OTP 29.0.6), and rebar3 (3.27.0).
+The Elixir layer additionally requires Elixir 1.20 (tested with 1.20.4).
 On this laptop add `/opt/homebrew/bin` alongside the Rust toolchain to PATH:
 
 ```sh
@@ -93,6 +103,9 @@ make protocol-check # real fragmented/coalesced/rejected frames; new evidence
 make ownership-check # nine bounded sessions; new evidence, no retries
 make receipt-check   # standalone metadata, BEAM kill, lossless recovery
 make witness-check   # hello-world prompt flip, one matched pair
+make isolation-check # identity, writer/Port failures, healthy siblings
+make elixir-test     # formatting and classification unit test
+make elixir-check    # nine pairs including two deliberate anomalies
 ```
 
 The probe, argv, explicit environment, cwd and empty input are identical across
