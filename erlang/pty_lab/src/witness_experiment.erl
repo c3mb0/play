@@ -46,21 +46,20 @@ run(Root, Directory) ->
 
 cell(Mode, Spec, Input, Root, Directory) ->
     Identity = #{<<"experiment">> => <<"witness_001">>, <<"cell">> => Mode, <<"session">> => Mode},
-    {ok, Worker} = session_sup:start_session(#{identity => Identity, spec => Spec,
+    {ok, Handle} = pty_session:start_session(#{identity => Identity, spec => Spec,
         helper => filename:join(Root, "target/debug/pty_helper"),
         receipt => filename:join(Directory, binary_to_list(Mode) ++ ".jsonl"), deadline_ms => 5000, owner => self()}),
-    receive {session_event, Mode, #{<<"event">> := <<"spawned">>}} -> ok
-    after 3000 -> error({spawn_timeout, Mode}) end,
+    Worker = maps:get(worker, Handle),
+    {ok, _} = pty_session:await_event(Handle, <<"spawned">>, 3000),
     SpawnReceived = erlang:monotonic_time(nanosecond),
-    ok = receipt_writer:event(Mode, <<"input_timing_policy">>, #{delay_ms => 100,
+    ok = receipt_writer:event(Worker, <<"input_timing_policy">>, #{delay_ms => 100,
         anchor => <<"experiment receives spawned">>, spawn_received_monotonic_ns => SpawnReceived}),
     receive after 100 -> ok end,
     RequestedAt = erlang:monotonic_time(nanosecond),
-    ok = receipt_writer:event(Mode, <<"input_timing_observation">>, #{delay_ns => RequestedAt - SpawnReceived,
+    ok = receipt_writer:event(Worker, <<"input_timing_observation">>, #{delay_ns => RequestedAt - SpawnReceived,
         meaning => <<"elapsed to write-request preparation, not exact OS delivery">>}),
-    ok = session_worker:command(Worker, #{<<"command">> => <<"write">>, <<"hex">> => binary:encode_hex(Input)}),
-    receive {session_terminal, Mode, <<"completed">>} -> ok
-    after 6500 -> error({session_not_completed, Mode}) end,
+    ok = pty_session:send_input(Handle, Input),
+    {ok, #{outcome := <<"completed">>, receipt_status := sealed}} = pty_session:await_result(Handle, 6500),
     Monitor = monitor(process, Worker),
     receive
         {'DOWN', Monitor, process, Worker, Reason} when Reason =:= normal; Reason =:= noproc -> ok;

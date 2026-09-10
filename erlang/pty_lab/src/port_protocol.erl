@@ -1,5 +1,10 @@
 -module(port_protocol).
--export([encode/1, decode/3]).
+-export([encode/1, decode/3, send/2]).
+send(Port, Bytes) ->
+    try erlang:port_command(Port, Bytes, [nosuspend]) of
+        true -> ok;
+        false -> {error, port_busy}
+    catch error:badarg -> {error, port_closed} end.
 encode(Value) ->
     Bytes = iolist_to_binary(json:encode(Value)),
     true = byte_size(Bytes) =< 1048576,

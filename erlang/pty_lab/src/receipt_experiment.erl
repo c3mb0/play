@@ -16,7 +16,7 @@ capture(Root, Directory, Mode) ->
              <<"cwd">> => list_to_binary(Root), <<"attachment">> => <<"pipe">>},
     Id = list_to_binary(Mode),
     Identity = #{<<"experiment">> => <<"receipt_001">>, <<"cell">> => Id, <<"session">> => Id},
-    {ok, _Worker} = session_sup:start_session(#{identity => Identity, spec => Spec,
+    {ok, Worker} = session_sup:start_session(#{identity => Identity, spec => Spec,
         helper => filename:join(Root, "target/debug/pty_helper"),
         receipt => filename:join(Directory, Mode ++ ".jsonl"), deadline_ms => 5000, owner => self()}),
     case Mode of
@@ -26,7 +26,7 @@ capture(Root, Directory, Mode) ->
             Spawned = receive {session_event, Id, #{<<"event">> := <<"spawned">>, <<"data">> := Data}} -> Data
                       after 3000 -> error(spawn_timeout) end,
             ready(Id, <<>>, erlang:monotonic_time(millisecond) + 3000),
-            ok = receipt_writer:event(Id, <<"fault_injection_armed">>, #{kind => <<"external_BEAM_SIGKILL">>}),
+            ok = receipt_writer:event(Worker, <<"fault_injection_armed">>, #{kind => <<"external_BEAM_SIGKILL">>}),
             File = filename:join(Directory, "armed.json"),
             Pending = filename:join(Directory, "armed.pending.json"),
             {ok, Fd} = file:open(Pending, [write, binary, exclusive]),

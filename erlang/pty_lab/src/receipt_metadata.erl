@@ -6,7 +6,7 @@ build(Options) ->
     Helper = maps:get(helper, Options),
     Mode = maps:get(<<"attachment">>, Spec),
     #{receipt_schema => 2,
-      run_id => list_to_binary(filename:basename(filename:dirname(maps:get(receipt, Options)))),
+      run_id => maps:get(<<"run">>, maps:get(identity, Options)),
       spec => Spec,
       executable => fingerprint(maps:get(<<"executable">>, Spec)),
       helper => (fingerprint(Helper))#{reported => helper_metadata(Helper)},
