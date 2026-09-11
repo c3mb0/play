@@ -342,28 +342,42 @@ impl Drop for Subject {
         if !self.interactive {
             return;
         }
-        // Only the owned shell group and the currently foreground terminal group.
+        // Job control creates additional process groups within the owned PTY
+        // session. Include background jobs, not just the current foreground job.
         let shell = self.child.0.id() as i32;
         let foreground = self
             .input
             .as_ref()
             .map(|f| unsafe { libc::tcgetpgrp(f.as_raw_fd()) })
             .unwrap_or(-1);
-        let groups: Vec<i32> = [shell, foreground].into_iter().filter(|g| *g > 1).collect();
-        for g in &groups {
+        let mut groups: Vec<i32> = [shell, foreground].into_iter().filter(|g| *g > 1).collect();
+        match Command::new("/bin/ps").args(["-axo", "pid="]).output() {
+            Ok(output) if output.status.success() => {
+                for pid in String::from_utf8_lossy(&output.stdout)
+                    .split_whitespace()
+                    .filter_map(|s| s.parse::<i32>().ok())
+                {
+                    if unsafe { libc::getsid(pid) } == shell {
+                        let group = unsafe { libc::getpgid(pid) };
+                        if group > 1 {
+                            groups.push(group);
+                        }
+                    }
+                }
+            }
+            _ => eprintln!("PTY cleanup: could not enumerate owned session groups"),
+        }
+        groups.sort_unstable();
+        groups.dedup();
+        // This is teardown, not an invitation to handle HUP. No grace interval:
+        // stopped jobs and jobs ignoring HUP/TERM must stop as well.
+        for group in groups {
             unsafe {
-                libc::kill(-*g, libc::SIGHUP);
-                libc::kill(-*g, libc::SIGCONT);
+                libc::kill(-group, libc::SIGKILL);
             }
         }
         self.input.take();
         self.readers.clear();
-        std::thread::sleep(Duration::from_millis(150));
-        for g in &groups {
-            unsafe {
-                libc::kill(-*g, libc::SIGKILL);
-            }
-        }
     }
 }
 

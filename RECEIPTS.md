@@ -89,3 +89,17 @@ descendants and non-macOS runtime behavior remain out of scope.
 
 Implementation references: Erlang [file operations](https://www.erlang.org/docs/29/apps/kernel/file.html)
 and [module identity](https://www.erlang.org/doc/system/modules.html#module_info-0-and-module_info-1-functions).
+
+## Interactive teardown correction (2026-09-11)
+
+Interactive teardown enumerates process groups in the owned PTY session and
+sends SIGKILL without the former 150ms HUP grace. Background job-control groups
+are included alongside shell/foreground groups. The non-interactive lab policy
+is unchanged. This is not containment for deliberately daemonized processes
+that leave the PTY session. Failure to enumerate is reported on stderr.
+
+Window's real-VM SIGINT fixture reproduced a surviving background process with
+3963c30 and observed all12/14 tracked processes absent within0.11seconds with this
+change (direct-PID and process-group delivery). Rust fmt/clippy/workspace tests
+and Erlang EUnit7/xref passed. The executable regression lives in window's
+scripts/check_sigint.py because it exercises that app's runtime launcher too.
